@@ -108,6 +108,7 @@ class geo_metadata(object):
     def _prepare_widgets(self):
         self.widget_objects.append(self._widget_header())
         self.widget_objects.append(self._widget_measurement_type())
+        self.widget_objects.append(self._widget_method())
         self.widget_objects.append(self._widget_data_directory())
         self.widget_objects.append(self._widget_output_directory())
         self.widget_objects.append(self._widget_datetime())
@@ -178,6 +179,31 @@ class geo_metadata(object):
         type_measurement.observe(_observe_measurement_type)
         return type_measurement
 
+    def _widget_method(self):
+        method = widgets.RadioButtons(
+            options=[
+                'Geoelectrical - ERT',
+                'Geoelectrical - TDIP',
+                'Geoelectrical - sEIT',
+                'Geoelectrical - SIP/EIS',
+                'GPR',
+                'Seismic',
+            ],
+            default='Geoelectrical - ERT',
+            description='Method:',
+            disabled=False,
+            # layout=layout,
+        )
+        # set initial metadata
+        self.metadata['method'] = 'Geoelectrical - ERT'
+
+        def _observe_method(change):
+            self.metadata['method'] = method.value
+            self._update_widget_export()
+
+        method.observe(_observe_method)
+        return method
+
     def _widget_export(self):
         """Preview of metadata export"""
 
@@ -209,7 +235,7 @@ class geo_metadata(object):
             description='Owner:',
         )
 
-        @debounce(1)
+        @debounce(0.2)
         def _observe_owner(change):
             self.metadata['owner'] = self.widget_owner.value
             self._update_widget_export()
