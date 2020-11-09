@@ -107,6 +107,32 @@ class geo_metadata(object):
 
     def _prepare_widgets(self):
         self.widget_objects.append(self._widget_header())
+        # operator entries
+        operator_widgets = []
+
+        operator_widgets.append(self._widget_owner())
+        operator_widgets.append(self._widget_email())
+
+        operator_box = widgets.Box(operator_widgets)
+        operator_box.layout.display = 'flex'
+        operator_box.layout.align_items = 'stretch'
+
+        self.widget_objects.append(
+            widgets.VBox([
+                widgets.HTML(
+                    '<hr style="height:5px;border-width:0;color:black;' +
+                    'background-color:black;"></hr>'
+                ),
+                widgets.Label('Operator Metadata:'),
+                operator_box,
+                widgets.HTML(
+                    '<hr style="height:5px;border-width:0;color:black;' +
+                    'background-color:black;"></hr>'
+                ),
+            ])
+        )
+
+        #
         self.widget_objects.append(self._widget_measurement_type())
         self.widget_objects.append(self._widget_method())
         self.widget_objects.append(self._widget_data_directory())
@@ -115,8 +141,6 @@ class geo_metadata(object):
         self.widget_objects.append(self._widget_output_directory())
         self.widget_objects.append(self._widget_datetime())
 
-        self.widget_objects.append(self._widget_owner())
-        self.widget_objects.append(self._widget_email())
         self.widget_objects.append(self._widget_export())
 
     def _widget_header(self):
