@@ -110,10 +110,13 @@ class geo_metadata(object):
         self.widget_objects.append(self._widget_measurement_type())
         self.widget_objects.append(self._widget_method())
         self.widget_objects.append(self._widget_data_directory())
+        self.widget_objects.append(self._widget_picture_directory())
+        self.widget_objects.append(self._widget_document_directory())
         self.widget_objects.append(self._widget_output_directory())
         self.widget_objects.append(self._widget_datetime())
 
         self.widget_objects.append(self._widget_owner())
+        self.widget_objects.append(self._widget_email())
         self.widget_objects.append(self._widget_export())
 
     def _widget_header(self):
@@ -126,6 +129,19 @@ class geo_metadata(object):
             geophysical dataset. Starting from one or multiple input
             directories, a cleanly structured output directory is generated
             (without deleting any input files).
+
+            <h3>Starting Point</h3>
+
+            <ol>
+                <li>Measurement data is located in one local directory (the
+                'Data input directory')</li>
+                <li>(optional)Pictures are located within a separate
+                (sub-)directory</li>
+                <li>(optional) Other documents (e.g., notes) are also located
+                within a separate (sub-)directory</li>
+            </ol>
+
+            <h3>Activities of this gui</h3>
 
             <ol>
              <li>Copy measurement data files and auxiliary files (pictures,
@@ -153,6 +169,24 @@ class geo_metadata(object):
 
         return data_widget
 
+    def _widget_picture_directory(self):
+        picture_directory = _widget_select_directory(
+            self.metadata, 'picture_dir', 'Picture input directory',
+            callback=self._update_widget_export
+        )
+        picture_widget = picture_directory.get_widget()
+
+        return picture_widget
+
+    def _widget_document_directory(self):
+        document_directory = _widget_select_directory(
+            self.metadata, 'document_dir', 'Document input directory',
+            callback=self._update_widget_export
+        )
+        document_widget = document_directory.get_widget()
+
+        return document_widget
+
     def _widget_output_directory(self):
         output_directory = _widget_select_directory(
             self.metadata, 'output_dir', 'Output directory',
@@ -165,10 +199,11 @@ class geo_metadata(object):
         type_measurement = widgets.RadioButtons(
             options=['Laboratory Measurement', 'Field Measurement'],
             default='Laboratory Measurement',
-            description='Measurement type:',
+            description='',
             disabled=False,
             # layout=layout,
         )
+        label_mt = widgets.Label('Measurement type:')
         # set initial metadata
         self.metadata['measurement_type'] = 'laboratory'
 
@@ -177,7 +212,7 @@ class geo_metadata(object):
             self._update_widget_export()
 
         type_measurement.observe(_observe_measurement_type)
-        return type_measurement
+        return widgets.HBox([label_mt, type_measurement])
 
     def _widget_method(self):
         method = widgets.RadioButtons(
@@ -242,6 +277,19 @@ class geo_metadata(object):
 
         self.widget_owner.observe(_observe_owner)
         return self.widget_owner
+
+    def _widget_email(self):
+        self.widget_email = widgets.Text(
+            description='Email:',
+        )
+
+        @debounce(0.2)
+        def _observe_email(change):
+            self.metadata['email'] = self.widget_email.value
+            self._update_widget_export()
+
+        self.widget_email.observe(_observe_email)
+        return self.widget_email
 
     def _widget_datetime(self):
         widget_dt = widgets.DatePicker(
