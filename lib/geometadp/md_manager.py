@@ -107,6 +107,7 @@ class geo_metadata(object):
 
     def _prepare_widgets(self):
         self.widget_objects.append(self._widget_header())
+        self.widget_objects.append(self._widget_report_title())
         self.widget_objects.append(self._widget_measurement_type())
         self.widget_objects.append(self._widget_method())
         self.widget_objects.append(self._widget_data_directory())
@@ -128,7 +129,7 @@ class geo_metadata(object):
             (without deleting any input files).
 
             <ol>
-             <li>Copy measurement data files and auxiliary files (pictures,
+             <li>Copyyy measurement data files and auxiliary files (pictures,
              etc.) into the output directory structure</li>
              <li>Generate suitable metadata from user input</li>
              <li>Write this metadata into the directory structure, making it
@@ -143,6 +144,34 @@ class geo_metadata(object):
 
         vbox = widgets.VBox([title, text])
         return vbox
+
+
+#%% REPORT
+
+    def _widget_report_title(self):
+        self.widget_report_title = widgets.Text(
+            description='Short title description of the dataset',
+        )
+
+        @debounce(0.2)
+        def _observe_report_title(change):
+            self.metadata['report_title'] = self._widget_report_title.value
+            self._update_widget_export()
+
+        self._widget_report_title.observe(_observe_report_title)
+        return self._widget_report_title
+
+#%% SURVEY
+
+
+#%% ERT metadata
+
+#%% EM metadata
+
+#%% DATA QUALITY ASSESSEMENT metadata
+
+#%% SAMPLING
+
 
     def _widget_data_directory(self):
         data_directory = _widget_select_directory(
@@ -182,7 +211,7 @@ class geo_metadata(object):
     def _widget_method(self):
         method = widgets.RadioButtons(
             options=[
-                'Geoelectrical - ERT',
+                'Geoelectrical - ERT test',
                 'Geoelectrical - TDIP',
                 'Geoelectrical - sEIT',
                 'Geoelectrical - SIP/EIS',
