@@ -56,6 +56,15 @@ def debounce(wait):
         return debounced
     return decorator
 
+class _widget_select_jsonfile(object):
+
+    def __init__(self, output_dict, key, help_text, callback=None):
+        dlg = QFileDialog()
+        dlg.setFileMode(QFileDialog.AnyFile)
+        dlg.setFilter("json files (*.json)")
+        filenames = QStringList()
+
+
 
 class _widget_select_directory(object):
     """Use the QT5 widget to select a directory
@@ -108,13 +117,19 @@ class geo_metadata(object):
     def _prepare_widgets(self):
         self.widget_objects.append(self._widget_header())
         self.widget_objects.append(self._widget_report_title())
-        self.widget_objects.append(self._widget_measurement_type())
+        self.widget_objects.append(self._widget_report_authors())
+        self.widget_objects.append(self._widget_owner())
+
         self.widget_objects.append(self._widget_method())
+
+        # if method is 'Geoelectrical - ERT':
+        #     self.widget_objects.append(self._widget_measurement_type())
+        #     self.widget_objects.append(self._widget_instrument())
+        
         self.widget_objects.append(self._widget_data_directory())
         self.widget_objects.append(self._widget_output_directory())
         self.widget_objects.append(self._widget_datetime())
 
-        self.widget_objects.append(self._widget_owner())
         self.widget_objects.append(self._widget_export())
 
     def _widget_header(self):
@@ -129,7 +144,7 @@ class geo_metadata(object):
             (without deleting any input files).
 
             <ol>
-             <li>Copyyy measurement data files and auxiliary files (pictures,
+             <li>Copy measurement data files and auxiliary files (pictures,
              etc.) into the output directory structure</li>
              <li>Generate suitable metadata from user input</li>
              <li>Write this metadata into the directory structure, making it
@@ -146,7 +161,7 @@ class geo_metadata(object):
         return vbox
 
 
-#%% REPORT
+#%% REPORT: title/authors
 
     def _widget_report_title(self):
         self.widget_report_title = widgets.Text(
@@ -155,63 +170,31 @@ class geo_metadata(object):
 
         @debounce(0.2)
         def _observe_report_title(change):
-            self.metadata['report_title'] = self._widget_report_title.value
+            self.metadata['report_title'] = self.widget_report_title.value
             self._update_widget_export()
 
-        self._widget_report_title.observe(_observe_report_title)
-        return self._widget_report_title
+        self.widget_report_title.observe(_observe_report_title)
+        return self.widget_report_title
 
-#%% SURVEY
-
-
-#%% ERT metadata
-
-#%% EM metadata
-
-#%% DATA QUALITY ASSESSEMENT metadata
-
-#%% SAMPLING
-
-
-    def _widget_data_directory(self):
-        data_directory = _widget_select_directory(
-            self.metadata, 'data_dir', 'Data input directory',
-            callback=self._update_widget_export
+    def _widget_report_authors(self):
+        self.widget_report_authors = widgets.Text(
+            description='Reporting authors names',
         )
-        data_widget = data_directory.get_widget()
 
-        return data_widget
-
-    def _widget_output_directory(self):
-        output_directory = _widget_select_directory(
-            self.metadata, 'output_dir', 'Output directory',
-            callback=self._update_widget_export
-        )
-        output_widget = output_directory.get_widget()
-        return output_widget
-
-    def _widget_measurement_type(self):
-        type_measurement = widgets.RadioButtons(
-            options=['Laboratory Measurement', 'Field Measurement'],
-            default='Laboratory Measurement',
-            description='Measurement type:',
-            disabled=False,
-            # layout=layout,
-        )
-        # set initial metadata
-        self.metadata['measurement_type'] = 'laboratory'
-
-        def _observe_measurement_type(change):
-            self.metadata['measurement_type'] = type_measurement.value
+        @debounce(0.2)
+        def _observe_report_authors(change):
+            self.metadata['report_authors'] = self.widget_report_authors.value
             self._update_widget_export()
 
-        type_measurement.observe(_observe_measurement_type)
-        return type_measurement
+        self.widget_report_authors.observe(_observe_report_authors)
+        return self.widget_report_authors
+
+#%% SURVEY: method/type/instrument
 
     def _widget_method(self):
         method = widgets.RadioButtons(
             options=[
-                'Geoelectrical - ERT test',
+                'Geoelectrical - ERT',
                 'Geoelectrical - TDIP',
                 'Geoelectrical - sEIT',
                 'Geoelectrical - SIP/EIS',
@@ -232,6 +215,79 @@ class geo_metadata(object):
 
         method.observe(_observe_method)
         return method
+
+    def _widget_measurement_type(self):
+        type_measurement = widgets.RadioButtons(
+            options=['Laboratory Measurement', 'Field Measurement'],
+            default='Laboratory Measurement',
+            description='Measurement type:',
+            disabled=False,
+            # layout=layout,
+        )
+        # set initial metadata
+        self.metadata['measurement_type'] = 'laboratory'
+
+        def _observe_measurement_type(change):
+            self.metadata['measurement_type'] = type_measurement.value
+            self._update_widget_export()
+
+        type_measurement.observe(_observe_measurement_type)
+        return type_measurement
+
+    def _widget_instrument(self):
+        self.widget_instrument = widgets.Text(
+            description='Instrument',
+        )
+
+        @debounce(0.2)
+        def _observe_instrument(change):
+            self.metadata['instrument'] = self.widget_instrument.value
+            self._update_widget_export()
+
+        self.widget_instrument.observe(_observe_instrument)
+        return self.widget_instrument
+
+
+    def _widget_datetime(self):
+        widget_dt = widgets.DatePicker(
+            description='Datetime of measurement',
+            disabled=False
+        )
+
+        def _observe_dt(change):
+            date = widget_dt.value
+            if date is not None:
+                self.metadata['date'] = date.isoformat()
+                self._update_widget_export()
+
+        widget_dt.observe(_observe_dt)
+        return widget_dt
+
+#%% ERT metadata: Date_measure/ Time_measure/ Elec_conf/ Elec_spacing
+
+#%% EM metadata
+
+#%% DATA QUALITY ASSESSEMENT metadata
+
+#%% SAMPLING
+
+    def _widget_data_directory(self):
+        data_directory = _widget_select_directory(
+            self.metadata, 'data_dir', 'Data input directory',
+            callback=self._update_widget_export
+        )
+        data_widget = data_directory.get_widget()
+
+        return data_widget
+
+    def _widget_output_directory(self):
+        output_directory = _widget_select_directory(
+            self.metadata, 'output_dir', 'Output directory',
+            callback=self._update_widget_export
+        )
+        output_widget = output_directory.get_widget()
+        return output_widget
+
 
     def _widget_export(self):
         """Preview of metadata export"""
@@ -272,20 +328,6 @@ class geo_metadata(object):
         self.widget_owner.observe(_observe_owner)
         return self.widget_owner
 
-    def _widget_datetime(self):
-        widget_dt = widgets.DatePicker(
-            description='Datetime of measurement',
-            disabled=False
-        )
-
-        def _observe_dt(change):
-            date = widget_dt.value
-            if date is not None:
-                self.metadata['date'] = date.isoformat()
-                self._update_widget_export()
-
-        widget_dt.observe(_observe_dt)
-        return widget_dt
 
     def export_metadata_to_json_str(self):
         """Generate a string representation of the metadata"""
@@ -308,6 +350,10 @@ class geo_metadata(object):
         self.widget_export.value = "<pre>{}</pre>".format(
             html.escape(metadata_str))
 
+    def _update_widget_objects(self):
+
+
+
     def manage(self):
         self.vbox = widgets.VBox(self.widget_objects)
         display(self.vbox)
@@ -316,3 +362,5 @@ class geo_metadata(object):
         # self.metadata['test2'] = 832
 
         self._update_widget_export()
+
+
