@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QFileDialog
 import json
 import dicttoxml
 from IPython.core.display import display
+import ipydatetime
 
 """
 Each widget object is associated with one metadata entry
@@ -116,27 +117,52 @@ class geo_metadata(object):
 
     def _prepare_widgets(self):
         self.widget_objects.append(self._widget_header())
+      
+        #%% REPORT: title/authors
         self.widget_objects.append(self._widget_report_title())
         self.widget_objects.append(self._widget_report_authors())
         self.widget_objects.append(self._widget_owner())
-
+      
+        # SURVEY: method/type/instrument
+        self.widget_objects.append(self._widgets_survey_doc())
         self.widget_objects.append(self._widget_method())
+        self.widget_objects.append(self._widget_measurement_type())
 
-        # if method is 'Geoelectrical - ERT':
-        #     self.widget_objects.append(self._widget_measurement_type())
-        #     self.widget_objects.append(self._widget_instrument())
-        
+        #%% ERT metadata: Date_measure/ Time_measure/ Elec_conf/ Elec_spacing
+        self.widget_objects.append(self._widgets_ERT_doc())
+        self.widget_objects.append(self._widget_instrument())
+        self.widget_objects.append(self._widget_datetime())
+        # self.widget_objects.append(self._widget_time())
+        self.widget_objects.append(self._widget_elec_config())
+        self.widget_objects.append(self._widget_elec_seq())
+        self.widget_objects.append(self._widget_elec_spacing())
+
+        #%% EM metadata
+        self.widget_objects.append(self._widgets_EM_doc())
+
+        #%% DATA QUALITY ASSESSEMENT metadata
+        self.widget_objects.append(self._widgets_quality_doc())
+        self.widget_objects.append(self._widget_peer_reviewed())
+        self.widget_objects.append(self._widget_peer_reviewer_contact())
+        self.widget_objects.append(self._widget_replicate_datasets())
+        self.widget_objects.append(self._widget_comparison_ref_data())
+        self.widget_objects.append(self._widget_ref_data())
+
+        #%% SAMPLING
+        self.widget_objects.append(self._widgets_sampling_doc())
+
+        #%% DATA structure 
         self.widget_objects.append(self._widget_data_directory())
         self.widget_objects.append(self._widget_output_directory())
-        self.widget_objects.append(self._widget_datetime())
 
+        #%% Export 
         self.widget_objects.append(self._widget_export())
 
     def _widget_header(self):
         """Show the header of the data mangement gui that explains the basic concepts
         """
         title = widgets.HTML(
-            '<h2>Data Manager and Metadata Collector for CGAGS<h2/>')
+            '<h2>Data Manager and Metadata Collector for CGAGS - DEV version <h2/>')
         text = widgets.HTML('''
             This gui is designed to help with the initial preparation of one
             geophysical dataset. Starting from one or multiple input
@@ -160,12 +186,12 @@ class geo_metadata(object):
         vbox = widgets.VBox([title, text])
         return vbox
 
-
 #%% REPORT: title/authors
 
     def _widget_report_title(self):
         self.widget_report_title = widgets.Text(
             description='Short title description of the dataset',
+            style={'description_width': 'initial'}
         )
 
         @debounce(0.2)
@@ -179,6 +205,7 @@ class geo_metadata(object):
     def _widget_report_authors(self):
         self.widget_report_authors = widgets.Text(
             description='Reporting authors names',
+            style={'description_width': 'initial'}
         )
 
         @debounce(0.2)
@@ -189,7 +216,29 @@ class geo_metadata(object):
         self.widget_report_authors.observe(_observe_report_authors)
         return self.widget_report_authors
 
-#%% SURVEY: method/type/instrument
+    def _widget_owner(self):
+        self.widget_owner = widgets.Text(
+            description='Owner:'
+        )
+
+        @debounce(0.2)
+        def _observe_owner(change):
+            self.metadata['owner'] = self.widget_owner.value
+            self._update_widget_export()
+
+        self.widget_owner.observe(_observe_owner)
+        return self.widget_owner
+
+    #%% SURVEY: method/type/instrument
+
+    def _widgets_survey_doc(self):
+        title = widgets.HTML('''
+            For the choice of the method please report to <a href="https://agrogeophy.github.io/datasets/glossary.html">the online documentation glossary</a>
+             <hr style="height:1px;border-width:0;color:black;background-color:gray">
+             ''')
+        vbox = widgets.VBox([title])
+        return vbox
+
 
     def _widget_method(self):
         method = widgets.RadioButtons(
@@ -204,8 +253,9 @@ class geo_metadata(object):
             default='Geoelectrical - ERT',
             description='Method:',
             disabled=False,
-            # layout=layout,
+            style={'description_width': 'initial'}
         )
+
         # set initial metadata
         self.metadata['method'] = 'Geoelectrical - ERT'
 
@@ -222,8 +272,9 @@ class geo_metadata(object):
             default='Laboratory Measurement',
             description='Measurement type:',
             disabled=False,
-            # layout=layout,
+            style={'description_width': 'initial'}
         )
+
         # set initial metadata
         self.metadata['measurement_type'] = 'laboratory'
 
@@ -263,13 +314,192 @@ class geo_metadata(object):
         widget_dt.observe(_observe_dt)
         return widget_dt
 
-#%% ERT metadata: Date_measure/ Time_measure/ Elec_conf/ Elec_spacing
+ 
+    #%% ERT metadata: Time_measure/ Elec_conf/ Elec_spacing
+    def _widgets_ERT_doc(self):
+        title = widgets.HTML('''
+            Please refer to the <a href="https://agrogeophy.github.io/catalog/schema_documentation.html#table-ert-metadata">online ERT metadata documentation </a>
+             <hr style="height:1px;border-width:0;color:black;background-color:gray">
+             ''')
+        vbox = widgets.VBox([title])
+        return vbox
 
-#%% EM metadata
 
-#%% DATA QUALITY ASSESSEMENT metadata
+    def _widget_time(self):
+        widget_t = ipydatetime.TimePicker(
+            description='Time of measurement',
+            disabled=False
+        )
 
-#%% SAMPLING
+        def _observe_t(change):
+            time = widget_t.value
+            if time is not None:
+                self.metadata['time'] = time
+                self._update_widget_export()
+
+        widget_t.observe(_observe_t)
+        return widget_t
+
+    def _widget_elec_config(self):
+        type_elec_config = widgets.RadioButtons(
+            options=['1D', '2D','3D'],
+            default='1D',
+            description='Electrode configuration:',
+            disabled=False,
+            style={'description_width': 'initial'}
+        )
+
+        # set initial metadata
+        self.metadata['elec_config'] = '1D'
+
+        def _observe_elec_config(change):
+            self.metadata['elec_config'] = elec_config.value
+            self._update_widget_export()
+
+        type_elec_config.observe(_observe_elec_config)
+        return type_elec_config
+
+    def _widget_elec_seq(self):
+        elec_seq = widgets.RadioButtons(
+            options=['Wenner', 'WS','user defined'],
+            default='WS',
+            description='Electrode sequence:',
+            disabled=False,
+            style={'description_width': 'initial'}
+        )
+
+        # set initial metadata
+        self.metadata['elec_seq'] = 'WS'
+
+        def _observe_elec_seq(change):
+            self.metadata['elec_seq'] = elec_seq.value
+            self._update_widget_export()
+
+        elec_seq.observe(_observe_elec_seq)
+        return elec_seq
+
+    def _widget_elec_spacing(self):
+        self.widget_elec_spacing = widgets.Text(
+            description='Electrode spacing:',
+            style={'description_width': 'initial'}
+        )
+
+        @debounce(0.2)
+        def _observe_widget_elec_spacing(change):
+            self.metadata['elec_spacing'] = self.widget_elec_spacing.value
+            self._update_widget_export()
+
+        self.widget_elec_spacing.observe(_observe_widget_elec_spacing)
+        return self.widget_elec_spacing
+
+
+
+    #%% EM metadata
+    def _widgets_EM_doc(self):
+        title = widgets.HTML('''
+            Please refer to the <a href="https://agrogeophy.github.io/catalog/schema_documentation.html#table-em-metadata">online EM metadata documentation </a>
+             <hr style="height:1px;border-width:0;color:black;background-color:gray">
+             ''')
+        vbox = widgets.VBox([title])
+        return vbox
+
+    #%% DATA QUALITY ASSESSEMENT metadata
+    def _widgets_quality_doc(self):
+        title = widgets.HTML('''
+            Please refer to the <a href="https://agrogeophy.github.io/catalog/schema_documentation.html#table-data-quality-assessment-metadata">online quality metadata documentation </a>
+             <hr style="height:1px;border-width:0;color:black;background-color:gray">
+             ''')
+        vbox = widgets.VBox([title])
+        return vbox
+
+
+    def _widget_peer_reviewed(self):
+        self.widget_peer_reviewed = widgets.Text(
+            description='Peer reviewed:',
+            style={'description_width': 'initial'}
+        )
+
+        @debounce(0.2)
+        def _observe_peer_reviewed(change):
+            self.metadata['peer_reviewed'] = self.widget_peer_reviewed.value
+            self._update_widget_export()
+
+        self.widget_peer_reviewed.observe(_observe_peer_reviewed)
+        return self.widget_peer_reviewed
+
+
+    def _widget_peer_reviewer_contact(self):
+        self.widget_peer_reviewer_contact = widgets.Text(
+            description='Peer reviewer contact:',
+            style={'description_width': 'initial'}
+        )
+
+        @debounce(0.2)
+        def _observe_peer_reviewer_contact(change):
+            self.metadata['peer_reviewer_contact'] = self.widget_peer_reviewer_contact.value
+            self._update_widget_export()
+
+        self.widget_peer_reviewer_contact.observe(_observe_peer_reviewer_contact)
+        return self.widget_peer_reviewer_contact
+
+
+    def _widget_replicate_datasets(self):
+        self.widget_replicate_datasets = widgets.Text(
+            description='Replicate datasets:',
+            style={'description_width': 'initial'}
+        )
+
+
+        @debounce(0.2)
+        def _observe_replicate_datasets(change):
+            self.metadata['replicate_datasets'] = self.widget_replicate_datasets.value
+            self._update_widget_export()
+
+        self.widget_replicate_datasets.observe(_observe_replicate_datasets)
+        return self.widget_replicate_datasets
+
+
+    def _widget_comparison_ref_data(self):
+        self.widget_comparison_ref_data = widgets.Text(
+            description='Comparison ref data:',
+            style={'description_width': 'initial'}
+        )
+
+
+        @debounce(0.2)
+        def _observe_comparison_ref_data(change):
+            self.metadata['comparison_ref_data'] = self.widget_comparison_ref_data.value
+            self._update_widget_export()
+
+        self.widget_comparison_ref_data.observe(_observe_comparison_ref_data)
+        return self.widget_comparison_ref_data
+
+
+    def _widget_ref_data(self):
+        self.widget_ref_data = widgets.Text(
+            description='ref data:',
+            style={'description_width': 'initial'}
+        )
+
+
+        @debounce(0.2)
+        def _observe_ref_data(change):
+            self.metadata['ref_data'] = self.widget_ref_data.value
+            self._update_widget_export()
+
+        self.widget_ref_data.observe(_observe_ref_data)
+        return self.widget_ref_data
+
+
+    #%% SAMPLING
+    def _widgets_sampling_doc(self):
+        title = widgets.HTML('''
+            Please refer to the <a href="https://agrogeophy.github.io/catalog/schema_documentation.html#table-sampling">online sampling metadata documentation </a>
+             <hr style="height:1px;border-width:0;color:black;background-color:gray">
+             ''')
+        vbox = widgets.VBox([title])
+        return vbox
+
 
     def _widget_data_directory(self):
         data_directory = _widget_select_directory(
@@ -315,18 +545,6 @@ class geo_metadata(object):
         self.export_type.observe(_observe_export_type)
         return vbox
 
-    def _widget_owner(self):
-        self.widget_owner = widgets.Text(
-            description='Owner:',
-        )
-
-        @debounce(0.2)
-        def _observe_owner(change):
-            self.metadata['owner'] = self.widget_owner.value
-            self._update_widget_export()
-
-        self.widget_owner.observe(_observe_owner)
-        return self.widget_owner
 
 
     def export_metadata_to_json_str(self):
@@ -349,10 +567,6 @@ class geo_metadata(object):
         # self.widget_export.value = metadata_str
         self.widget_export.value = "<pre>{}</pre>".format(
             html.escape(metadata_str))
-
-    def _update_widget_objects(self):
-
-
 
     def manage(self):
         self.vbox = widgets.VBox(self.widget_objects)
