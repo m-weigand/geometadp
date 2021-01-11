@@ -7,6 +7,8 @@ import dicttoxml
 from IPython.core.display import display
 import ipydatetime
 
+#from file_import_qt5 as fileImportQt5
+
 """
 Each widget object is associated with one metadata entry
 
@@ -65,6 +67,13 @@ class _widget_select_jsonfile(object):
         dlg.setFilter("json files (*.json)")
         filenames = QStringList()
 
+    def _button_click(self, x):
+        directory = self._select_dir()
+        self.label.value = directory
+        self.output_dict[self.key] = directory
+        if self.callback is not None:
+            self.callback()
+            
 
 
 class _widget_select_directory(object):
@@ -117,6 +126,7 @@ class geo_metadata(object):
         self.widget_quality = []
         self.widget_sampling = []
         self.widget_data_structure = []
+        self.widget_import = []
 
         self._prepare_widgets()
 
@@ -172,6 +182,9 @@ class geo_metadata(object):
         self.widget_data_structure.append(self._widget_data_directory())
         self.widget_data_structure.append(self._widget_output_directory())
 
+        #%% Import 
+        self.widget_import.append(self._widget_import())
+        
         #%% Export 
         self.widget_objects.append(self._widget_export())
 
@@ -724,6 +737,15 @@ class geo_metadata(object):
         )
         output_widget = output_directory.get_widget()
         return output_widget
+         
+        
+    def _widget_import(self):
+        """Import pre-existing JSON file"""
+        from ipywidgets import FileUpload
+
+        self.upload_widget = FileUpload()            
+        #self.upload_widget.observe()
+
 
 
     def _widget_export(self):
@@ -782,6 +804,7 @@ class geo_metadata(object):
         self.vbox_quality = widgets.VBox(self.widget_quality)
         self.vbox_sampling = widgets.VBox(self.widget_sampling)
         self.vbox_data_structure = widgets.VBox(self.widget_data_structure)
+        self.vbox_import = widgets.VBox(self.upload_widget)
         # display(self.vbox)
         # self.metadata['test1'] = 'balbaba'
         # self.metadata['test2'] = 832       
@@ -794,6 +817,7 @@ class geo_metadata(object):
                                        self.vbox_quality,
                                        self.vbox_sampling,
                                        self.vbox_data_structure,
+                                       self.vbox_import,
                                        self.widget_export
                                       ])
         tab.set_title(0, 'Guidelines')
@@ -802,6 +826,7 @@ class geo_metadata(object):
         tab.set_title(3, 'Quality')
         tab.set_title(4, 'Sampling')
         tab.set_title(5, 'Data structure')
-        tab.set_title(6, 'Export')
+        tab.set_title(6, 'Import')
+        tab.set_title(7, 'Export')
 
         display(tab)
