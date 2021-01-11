@@ -112,6 +112,11 @@ class geo_metadata(object):
 
         # stores the various widget objects. They are shown in this order
         self.widget_objects = []
+        self.widget_ERT = []
+        self.widget_EM = []
+        self.widget_quality = []
+        self.widget_sampling = []
+        self.widget_data_structure = []
 
         self._prepare_widgets()
 
@@ -133,39 +138,39 @@ class geo_metadata(object):
         self.widget_objects.append(self._widget_measurement_type())
 
         #%% ERT metadata: Date_measure/ Time_measure/ Elec_conf/ Elec_spacing
-        self.widget_objects.append(self._widgets_ERT_doc())
-        self.widget_objects.append(self._widget_instrument())
-        self.widget_objects.append(self._widget_datetime())
+        self.widget_ERT.append(self._widgets_ERT_doc())
+        self.widget_ERT.append(self._widget_instrument())
+        self.widget_ERT.append(self._widget_datetime())
         # self.widget_objects.append(self._widget_time())
-        self.widget_objects.append(self._widget_elec_config())
-        self.widget_objects.append(self._widget_elec_seq())
-        self.widget_objects.append(self._widget_elec_spacing())
-        self.widget_objects.append(self._widget_free_ERT())
+        self.widget_ERT.append(self._widget_elec_config())
+        self.widget_ERT.append(self._widget_elec_seq())
+        self.widget_ERT.append(self._widget_elec_spacing())
+        self.widget_ERT.append(self._widget_free_ERT())
 
         #%% EM metadata
-        self.widget_objects.append(self._widgets_EM_doc())
-        self.widget_objects.append(self._widget_coil_config())
-        self.widget_objects.append(self._widget_coil_height())
-        self.widget_objects.append(self._widget_coil_spacing())
-        self.widget_objects.append(self._widget_free_EM())
+        self.widget_EM.append(self._widgets_EM_doc())
+        self.widget_EM.append(self._widget_coil_config())
+        self.widget_EM.append(self._widget_coil_height())
+        self.widget_EM.append(self._widget_coil_spacing())
+        self.widget_EM.append(self._widget_free_EM())
 
         #%% DATA QUALITY ASSESSEMENT metadata
-        self.widget_objects.append(self._widgets_quality_doc())
-        self.widget_objects.append(self._widget_peer_reviewed())
-        self.widget_objects.append(self._widget_peer_reviewer_contact())
-        self.widget_objects.append(self._widget_replicate_datasets())
-        self.widget_objects.append(self._widget_comparison_ref_data())
-        self.widget_objects.append(self._widget_ref_data())
-        self.widget_objects.append(self._widget_free_quality())
+        self.widget_quality.append(self._widgets_quality_doc())
+        self.widget_quality.append(self._widget_peer_reviewed())
+        self.widget_quality.append(self._widget_peer_reviewer_contact())
+        self.widget_quality.append(self._widget_replicate_datasets())
+        self.widget_quality.append(self._widget_comparison_ref_data())
+        self.widget_quality.append(self._widget_ref_data())
+        self.widget_quality.append(self._widget_free_quality())
 
         #%% SAMPLING
-        self.widget_objects.append(self._widgets_sampling_doc())
-        self.widget_objects.append(self._widget_free_sampling())
+        self.widget_sampling.append(self._widgets_sampling_doc())
+        self.widget_sampling.append(self._widget_free_sampling())
 
         #%% DATA structure 
-        self.widget_objects.append(self._widgets_dataset_structure_doc())
-        self.widget_objects.append(self._widget_data_directory())
-        self.widget_objects.append(self._widget_output_directory())
+        self.widget_data_structure.append(self._widgets_dataset_structure_doc())
+        self.widget_data_structure.append(self._widget_data_directory())
+        self.widget_data_structure.append(self._widget_output_directory())
 
         #%% Export 
         self.widget_objects.append(self._widget_export())
@@ -772,15 +777,31 @@ class geo_metadata(object):
 
     def manage(self):
         self.vbox = widgets.VBox(self.widget_objects)
+        self.vbox_ERT = widgets.VBox(self.widget_ERT)
+        self.vbox_EM = widgets.VBox(self.widget_EM)
+        self.vbox_quality = widgets.VBox(self.widget_quality)
+        self.vbox_sampling = widgets.VBox(self.widget_sampling)
+        self.vbox_data_structure = widgets.VBox(self.widget_data_structure)
         # display(self.vbox)
-
         # self.metadata['test1'] = 'balbaba'
-        # self.metadata['test2'] = 832
-
+        # self.metadata['test2'] = 832       
+        
+        
         self._update_widget_export()
-        tab  = widgets.Tab(children = [self.vbox, self.vbox,self.widget_export])
-        tab.set_title(0, 'Step1')
-        tab.set_title(1, 'Step2')
-        tab.set_title(2, 'Export')
+        tab  = widgets.Tab(children = [self.vbox, 
+                                       self.vbox_ERT,
+                                       self.vbox_EM,                                       
+                                       self.vbox_quality,
+                                       self.vbox_sampling,
+                                       self.vbox_data_structure,
+                                       self.widget_export
+                                      ])
+        tab.set_title(0, 'Guidelines')
+        tab.set_title(1, 'ERT')
+        tab.set_title(2, 'EM')
+        tab.set_title(3, 'Quality')
+        tab.set_title(4, 'Sampling')
+        tab.set_title(5, 'Data structure')
+        tab.set_title(6, 'Export')
 
         display(tab)
