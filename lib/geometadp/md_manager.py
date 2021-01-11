@@ -826,7 +826,7 @@ class geo_metadata(object):
         tab.set_title(3, 'Quality')
         tab.set_title(4, 'Sampling')
         tab.set_title(5, 'Data structure')
-        tab.set_title(6, 'Import')
+        tab.set_title(6, 'Import/Export')
         tab.set_title(7, 'Export')
 
         display(tab)
