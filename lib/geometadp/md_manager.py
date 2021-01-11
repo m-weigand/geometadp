@@ -772,10 +772,15 @@ class geo_metadata(object):
 
     def manage(self):
         self.vbox = widgets.VBox(self.widget_objects)
-        display(self.vbox)
+        # display(self.vbox)
 
         # self.metadata['test1'] = 'balbaba'
         # self.metadata['test2'] = 832
 
         self._update_widget_export()
+        tab  = widgets.Tab(children = [self.vbox, self.vbox,self.widget_export])
+        tab.set_title(0, 'Step1')
+        tab.set_title(1, 'Step2')
+        tab.set_title(2, 'Export')
 
+        display(tab)
