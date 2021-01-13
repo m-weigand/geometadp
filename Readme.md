@@ -21,7 +21,7 @@ following code within on cell:
 	The first three lines do install the metadata manager and can be omitted
 	once it is installed.
 
-![Screenshot of the CAGS metadata manager](https://github.com/agrogeophy/geometadp/blob/CAGS_metadata_Manager.png?raw=true)
+[<img src="CAGS_metadata_Manager.png" width=90%>](https://agrogeophy.github.io/geometadp)
 
 ## Wishlist
 
