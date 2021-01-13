@@ -6,6 +6,7 @@ import json
 import dicttoxml
 from IPython.core.display import display
 import ipydatetime
+from ipywidgets import FileUpload, Button
 
 #from file_import_qt5 as fileImportQt5
 
@@ -120,18 +121,20 @@ class geo_metadata(object):
         self.metadata = {}
 
         # stores the various widget objects. They are shown in this order
+        self.widget_guidelines = []
         self.widget_objects = []
+        self.widget_survey = []
         self.widget_ERT = []
         self.widget_EM = []
         self.widget_quality = []
         self.widget_sampling = []
         self.widget_data_structure = []
-        self.widget_import = []
+        self.widget_import_export = []
 
         self._prepare_widgets()
 
     def _prepare_widgets(self):
-        self.widget_objects.append(self._widget_header())
+        self.widget_guidelines.append(self._widget_header())
       
         #%% REPORT: title/authors
         self.widget_objects.append(self._widget_report_title())
@@ -143,9 +146,9 @@ class geo_metadata(object):
         self.widget_objects.append(self._widget_location_bounds())
 
         # SURVEY: method/type/instrument
-        self.widget_objects.append(self._widgets_survey_doc())
-        self.widget_objects.append(self._widget_method())
-        self.widget_objects.append(self._widget_measurement_type())
+        self.widget_survey.append(self._widgets_survey_doc())
+        self.widget_survey.append(self._widget_method())
+        self.widget_survey.append(self._widget_measurement_type())
 
         #%% ERT metadata: Date_measure/ Time_measure/ Elec_conf/ Elec_spacing
         self.widget_ERT.append(self._widgets_ERT_doc())
@@ -182,11 +185,9 @@ class geo_metadata(object):
         self.widget_data_structure.append(self._widget_data_directory())
         self.widget_data_structure.append(self._widget_output_directory())
 
-        #%% Import 
-        self.widget_import.append(self._widget_import())
-        
-        #%% Export 
-        self.widget_objects.append(self._widget_export())
+        #%% Import/ Export 
+        self.widget_import_export.append(self._widget_import_export_buttons())
+        self.widget_import_export.append(self._widget_export())
 
     def _widget_header(self):
         """Show the header of the data mangement gui that explains the basic concepts
@@ -739,15 +740,27 @@ class geo_metadata(object):
         return output_widget
          
         
-    def _widget_import(self):
-        """Import pre-existing JSON file"""
-        from ipywidgets import FileUpload
+    def _widget_import_export_buttons(self):
+        """Import/exports buttons pre-existing JSON file"""
+        
+        upload_btn = widgets.FileUpload(
+                accept='.json,.xml',  # Accepted file extension e.g. '.txt', '.pdf', 'image/*', 'image/*,.pdf'
+                multiple=False  # True to accept multiple files upload else False
+            )
+        words = ['Export']
+        items = [Button(description=w) for w in words]
+                
 
-        self.upload_widget = FileUpload()            
-        #self.upload_widget.observe()
+        vbox = widgets.VBox(
+            [
+                upload_btn, 
+                items[0]
 
+            ]
+        )
+        return vbox
 
-
+        
     def _widget_export(self):
         """Preview of metadata export"""
 
@@ -767,6 +780,7 @@ class geo_metadata(object):
                 self.widget_export
             ]
         )
+
 
         def _observe_export_type(change):
             self._update_widget_export()
@@ -798,35 +812,43 @@ class geo_metadata(object):
             html.escape(metadata_str))
 
     def manage(self):
+        self.vbox_guidelines = widgets.VBox(self.widget_guidelines)
         self.vbox = widgets.VBox(self.widget_objects)
+        self.vbox_survey = widgets.VBox(self.widget_survey)
         self.vbox_ERT = widgets.VBox(self.widget_ERT)
         self.vbox_EM = widgets.VBox(self.widget_EM)
         self.vbox_quality = widgets.VBox(self.widget_quality)
         self.vbox_sampling = widgets.VBox(self.widget_sampling)
         self.vbox_data_structure = widgets.VBox(self.widget_data_structure)
-        self.vbox_import = widgets.VBox(self.upload_widget)
+        self.vbox_import_export = widgets.VBox(self.widget_import_export)
+
+        accordion_tab0 = widgets.Accordion(children=[self.vbox, self.vbox_survey])
+        accordion_tab0.set_title(0, 'Owner')
+        accordion_tab0.set_title(1, 'General Survey description')
+        
+        vbox_tab0 = widgets.VBox([self.vbox_guidelines,accordion_tab0])
+                          
+        #self.vbox_import = widgets.VBox(self.upload_widget)
         # display(self.vbox)
         # self.metadata['test1'] = 'balbaba'
         # self.metadata['test2'] = 832       
         
         
         self._update_widget_export()
-        tab  = widgets.Tab(children = [self.vbox, 
+        tab  = widgets.Tab(children = [vbox_tab0, 
                                        self.vbox_ERT,
                                        self.vbox_EM,                                       
                                        self.vbox_quality,
                                        self.vbox_sampling,
                                        self.vbox_data_structure,
-                                       self.vbox_import,
-                                       self.widget_export
+                                       self.vbox_import_export
                                       ])
-        tab.set_title(0, 'Guidelines')
+        tab.set_title(0, 'Home')
         tab.set_title(1, 'ERT')
         tab.set_title(2, 'EM')
         tab.set_title(3, 'Quality')
         tab.set_title(4, 'Sampling')
         tab.set_title(5, 'Data structure')
         tab.set_title(6, 'Import/Export')
-        tab.set_title(7, 'Export')
 
         display(tab)
