@@ -21,6 +21,8 @@ following code within on cell:
 	The first three lines do install the metadata manager and can be omitted
 	once it is installed.
 
+![Screenshot of the CAGS metadata manager](https://github.com/agrogeophy/geometadp/CAGS_metadata_Manager.png?raw=true)
+
 ## Wishlist
 
 * import functionality: import a given JSON-file and edit it
