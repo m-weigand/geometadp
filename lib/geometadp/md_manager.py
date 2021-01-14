@@ -141,15 +141,16 @@ class geo_metadata(object):
         self.widget_objects.append(self._widget_report_authors())
         self.widget_objects.append(self._widget_owner())
         self.widget_objects.append(self._widget_email())
-        self.widget_objects.append(self._widget_dataset_DOI())
-        self.widget_objects.append(self._widget_variables())
-        self.widget_objects.append(self._widget_location_bounds())
+
 
         # SURVEY: method/type/instrument
         self.widget_survey.append(self._widgets_survey_doc())
         self.widget_survey.append(self._widget_method())
         self.widget_survey.append(self._widget_measurement_type())
-
+        self.widget_survey.append(self._widget_dataset_DOI())
+        self.widget_survey.append(self._widget_variables())
+        self.widget_survey.append(self._widget_location_bounds())
+        
         #%% ERT metadata: Date_measure/ Time_measure/ Elec_conf/ Elec_spacing
         self.widget_ERT.append(self._widgets_ERT_doc())
         self.widget_ERT.append(self._widget_instrument())
