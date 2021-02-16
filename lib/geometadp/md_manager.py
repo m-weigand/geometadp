@@ -1,7 +1,7 @@
 import sys
 import ipywidgets as widgets
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QFileDialog
+#from PyQt5.QtWidgets import QFileDialog
 import json
 import dicttoxml
 from IPython.core.display import display
@@ -60,57 +60,57 @@ def debounce(wait):
         return debounced
     return decorator
 
-class _widget_select_jsonfile(object):
+#class _widget_select_jsonfile(object):
 
-    def __init__(self, output_dict, key, help_text, callback=None):
-        dlg = QFileDialog()
-        dlg.setFileMode(QFileDialog.AnyFile)
-        dlg.setFilter("json files (*.json)")
-        filenames = QStringList()
+    #def __init__(self, output_dict, key, help_text, callback=None):
+        #dlg = QFileDialog()
+        #dlg.setFileMode(QFileDialog.AnyFile)
+        #dlg.setFilter("json files (*.json)")
+        #filenames = QStringList()
 
-    def _button_click(self, x):
-        directory = self._select_dir()
-        self.label.value = directory
-        self.output_dict[self.key] = directory
-        if self.callback is not None:
-            self.callback()
+    #def _button_click(self, x):
+        #directory = self._select_dir()
+        #self.label.value = directory
+        #self.output_dict[self.key] = directory
+        #if self.callback is not None:
+        #    self.callback()
             
 
 
-class _widget_select_directory(object):
-    """Use the QT5 widget to select a directory
-    """
-    def __init__(self, output_dict, key, help_text, callback=None):
-        self.dialog = QFileDialog(None)
-        self.dialog.setFileMode(QFileDialog.Directory)
-        self.dialog.setOption(self.dialog.ShowDirsOnly, True)
-        self.output_dict = output_dict
-        self.key = key
-        self.help_text = help_text
-        self.callback = callback
+#class _widget_select_directory(object):
+   # """Use the QT5 widget to select a directory
+   #"""
+    #def __init__(self, output_dict, key, help_text, callback=None):
+        #self.dialog = QFileDialog(None)
+        #self.dialog.setFileMode(QFileDialog.Directory)
+        #self.dialog.setOption(self.dialog.ShowDirsOnly, True)
+        #self.output_dict = output_dict
+        #self.key = key
+        #self.help_text = help_text
+        #self.callback = callback
 
-    def _select_dir(self):
-        fname = self.dialog.getExistingDirectory(
-            None,
-            self.help_text,
+    #def _select_dir(self):
+        #fname = self.dialog.getExistingDirectory(
+        #    None,
+        #    self.help_text,
             # '/',
-        )
-        return fname
+        #)
+        #return fname
 
-    def _button_click(self, x):
-        directory = self._select_dir()
-        self.label.value = directory
-        self.output_dict[self.key] = directory
-        if self.callback is not None:
-            self.callback()
+    #def _button_click(self, x):
+        #directory = self._select_dir()
+        #self.label.value = directory
+        #self.output_dict[self.key] = directory
+        #if self.callback is not None:
+        #    self.callback()
 
-    def get_widget(self):
+    #def get_widget(self):
 
-        button = widgets.Button(description=self.help_text)
-        self.label = widgets.Label()
+        #button = widgets.Button(description=self.help_text)
+        #self.label = widgets.Label()
 
-        button.on_click(self._button_click)
-        return widgets.HBox([button, self.label])
+        #button.on_click(self._button_click)
+        #return widgets.HBox([button, self.label])
 
 
 class geo_metadata(object):
@@ -183,8 +183,8 @@ class geo_metadata(object):
 
         #%% DATA structure 
         self.widget_data_structure.append(self._widgets_dataset_structure_doc())
-        self.widget_data_structure.append(self._widget_data_directory())
-        self.widget_data_structure.append(self._widget_output_directory())
+        #self.widget_data_structure.append(self._widget_data_directory())
+        #self.widget_data_structure.append(self._widget_output_directory())
 
         #%% Import/ Export 
         #self.widget_import_export.append(self._widget_import_export_buttons())
@@ -723,43 +723,43 @@ class geo_metadata(object):
         return vbox
 
 
-    def _widget_data_directory(self):
-        data_directory = _widget_select_directory(
-            self.metadata, 'data_dir', 'Data input directory',
-            callback=self._update_widget_export
-        )
-        data_widget = data_directory.get_widget()
+    #def _widget_data_directory(self):
+    #    data_directory = _widget_select_directory(
+    #        self.metadata, 'data_dir', 'Data input directory',
+    #        callback=self._update_widget_export
+    #    )
+    #    data_widget = data_directory.get_widget()
+    #
+    #   return data_widget
 
-        return data_widget
-
-    def _widget_output_directory(self):
-        output_directory = _widget_select_directory(
-            self.metadata, 'output_dir', 'Output directory',
-            callback=self._update_widget_export
-        )
-        output_widget = output_directory.get_widget()
-        return output_widget
+    #def _widget_output_directory(self):
+    #    output_directory = _widget_select_directory(
+    #        self.metadata, 'output_dir', 'Output directory',
+    #        callback=self._update_widget_export
+    #    )
+    #    output_widget = output_directory.get_widget()
+    #    return output_widget
          
         
-    def _widget_import_export_buttons(self):
-        """Import/exports buttons pre-existing JSON file"""
-        
-        upload_btn = widgets.FileUpload(
-                accept='.json,.xml',  # Accepted file extension e.g. '.txt', '.pdf', 'image/*', 'image/*,.pdf'
-                multiple=False  # True to accept multiple files upload else False
-            )
-        words = ['Export']
-        items = [Button(description=w) for w in words]
+    #def _widget_import_export_buttons(self):
+    #    """Import/exports buttons pre-existing JSON file"""
+    #    
+    #    upload_btn = widgets.FileUpload(
+    #            accept='.json,.xml',  # Accepted file extension e.g. '.txt', '.pdf', 'image/*', 'image/*,.pdf'
+    #            multiple=False  # True to accept multiple files upload else False
+    #        )
+    #    words = ['Export']
+    #    items = [Button(description=w) for w in words]
                 
 
-        vbox = widgets.VBox(
-            [
-                upload_btn, 
-                items[0]
+    #    vbox = widgets.VBox(
+    #        [
+    #            upload_btn, 
+    #            items[0]
 
-            ]
-        )
-        return vbox
+    #        ]
+    #   )
+    #    return vbox
 
         
     def _widget_export(self):
@@ -820,7 +820,7 @@ class geo_metadata(object):
         self.vbox_EM = widgets.VBox(self.widget_EM)
         self.vbox_quality = widgets.VBox(self.widget_quality)
         self.vbox_sampling = widgets.VBox(self.widget_sampling)
-        self.vbox_data_structure = widgets.VBox(self.widget_data_structure)
+        #self.vbox_data_structure = widgets.VBox(self.widget_data_structure)
         self.vbox_export = widgets.VBox(self.widget_Wexport)
 
         accordion_tab0 = widgets.Accordion(children=[self.vbox, self.vbox_survey])
@@ -841,7 +841,7 @@ class geo_metadata(object):
                                        self.vbox_EM,                                       
                                        self.vbox_quality,
                                        self.vbox_sampling,
-                                       self.vbox_data_structure,
+                                       #self.vbox_data_structure,
                                        self.vbox_export
                                       ])
         tab.set_title(0, 'Home')
@@ -849,7 +849,7 @@ class geo_metadata(object):
         tab.set_title(2, 'EM')
         tab.set_title(3, 'Quality')
         tab.set_title(4, 'Sampling')
-        tab.set_title(5, 'Data structure')
-        tab.set_title(6, 'Export')
+        #tab.set_title(5, 'Data structure')
+        tab.set_title(5, 'Export')
 
         display(tab)
