@@ -1,1 +1,1 @@
-from geometadp.md_manager import geo_metadata
+from lib.geometadp.md_manager import geo_metadata

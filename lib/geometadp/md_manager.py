@@ -129,7 +129,7 @@ class geo_metadata(object):
         self.widget_quality = []
         self.widget_sampling = []
         self.widget_data_structure = []
-        self.widget_import_export = []
+        self.widget_Wexport = []
 
         self._prepare_widgets()
 
@@ -187,8 +187,8 @@ class geo_metadata(object):
         self.widget_data_structure.append(self._widget_output_directory())
 
         #%% Import/ Export 
-        self.widget_import_export.append(self._widget_import_export_buttons())
-        self.widget_import_export.append(self._widget_export())
+        #self.widget_import_export.append(self._widget_import_export_buttons())
+        self.widget_Wexport.append(self._widget_export())
 
     def _widget_header(self):
         """Show the header of the data mangement gui that explains the basic concepts
@@ -821,7 +821,7 @@ class geo_metadata(object):
         self.vbox_quality = widgets.VBox(self.widget_quality)
         self.vbox_sampling = widgets.VBox(self.widget_sampling)
         self.vbox_data_structure = widgets.VBox(self.widget_data_structure)
-        self.vbox_import_export = widgets.VBox(self.widget_import_export)
+        self.vbox_export = widgets.VBox(self.widget_Wexport)
 
         accordion_tab0 = widgets.Accordion(children=[self.vbox, self.vbox_survey])
         accordion_tab0.set_title(0, 'Owner')
@@ -842,7 +842,7 @@ class geo_metadata(object):
                                        self.vbox_quality,
                                        self.vbox_sampling,
                                        self.vbox_data_structure,
-                                       self.vbox_import_export
+                                       self.vbox_export
                                       ])
         tab.set_title(0, 'Home')
         tab.set_title(1, 'ERT')
@@ -850,6 +850,6 @@ class geo_metadata(object):
         tab.set_title(3, 'Quality')
         tab.set_title(4, 'Sampling')
         tab.set_title(5, 'Data structure')
-        tab.set_title(6, 'Import/Export')
+        tab.set_title(6, 'Export')
 
         display(tab)
