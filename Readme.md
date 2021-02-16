@@ -1,3 +1,5 @@
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/agrogeophy/geometadp.git/HEAD?urlpath=voila%2Frender%2FMetadataManager.ipynb)
+
 # Geophysical Metadata Management using a Juypter Notebook
 
 ## Usage
