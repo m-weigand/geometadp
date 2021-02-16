@@ -197,23 +197,10 @@ class geo_metadata(object):
             '<h2>Data Manager and Metadata Collector for CGAGS - DEV version <h2/>')
         text = widgets.HTML('''
             This gui is designed to help with the initial preparation of one
-            geophysical dataset. Starting from one or multiple input
-            directories, a cleanly structured output directory is generated
-            (without deleting any input files).
-
-            <ol>
-             <li>Copy measurement data files and auxiliary files (pictures,
-             etc.) into the output directory structure</li>
-             <li>Generate suitable metadata from user input</li>
-             <li>Write this metadata into the directory structure, making it
-             ready for further distribution</li>
-            </ol>
-
-            <b>Hit ENTER after finishing any one-line text input!<b />
-             <hr
-             style=
-             "height:5px;border-width:0;color:black;background-color:gray">
-        ''')
+            geophysical dataset metadata. In order to make the dataset FAIR, simple metadata descriptors must be filled. 
+            if you require additionnal dataset, please let us know by opening an issue <a href="https://github.com/agrogeophy/geometadp" target="_blank">on github </a>
+            Note that this is a lightened version of the metadata manager as the full version must be run locally to interact with files. See github for <a href="https://github.com/agrogeophy/geometadp" target="_blank">more informations.</a> 
+            ''')
 
         vbox = widgets.VBox([title, text])
         return vbox
