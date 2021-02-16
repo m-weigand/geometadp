@@ -8,7 +8,6 @@ decorator==4.4.2
 defusedxml==0.6.0
 dicttoxml==1.7.4
 entrypoints==0.3
-geometadp @ file:///home/mweigand/Programme/geometadp
 importlib-metadata==2.0.0
 ipykernel==5.3.4
 ipython==7.18.1
