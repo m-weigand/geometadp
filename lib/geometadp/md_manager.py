@@ -1,6 +1,6 @@
 import sys
 import ipywidgets as widgets
-from PyQt5.QtWidgets import QApplication
+#from PyQt5.QtWidgets import QApplication
 #from PyQt5.QtWidgets import QFileDialog
 import json
 import dicttoxml
@@ -115,7 +115,7 @@ def debounce(wait):
 
 class geo_metadata(object):
     def __init__(self):
-        self.app = QApplication(sys.argv)
+        #self.app = QApplication(sys.argv)
 
         # this stores the actual values exported to json/xml
         self.metadata = {}
