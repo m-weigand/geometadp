@@ -1,3 +1,2 @@
 libgl1-mesa-dev
-libGL.so.1
 xvfb
