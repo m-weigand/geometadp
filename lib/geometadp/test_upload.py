@@ -55,7 +55,7 @@ class geo_metadata(object):
         self.widget_upload.append(self._widget_import_buttons())
         self.widget_upload.append(self.widget_test_md2fill())
 
-        #%% Import/ Export 
+        #%% Import/ Export
         self.widget_export.append(self._widget_export())
 
     def widget_test_md2fill(self):
@@ -98,16 +98,17 @@ class geo_metadata(object):
 
     def _widget_import_buttons(self):
        """Import pre-existing JSON file"""
-       
+
        self.json_upload = widgets.FileUpload(
-               accept='.json',  # Accepted file extension 
+               accept='.json',  # Accepted file extension
                multiple=False  # True to accept multiple files upload else False
-           )                
+           )
 
        vbox = widgets.VBox([self.json_upload])
 
 
        def on_upload_change(change): # read an display
+            print('Upload file')
 
             for name, file_info in self.json_upload.value.items():
                 with open(name) as json_file:
@@ -124,7 +125,10 @@ class geo_metadata(object):
        return vbox
 
     def _update_widget_values(self):
-    	self.widget_test_md2fill()
+        self.widget_md2fill.value = 'maxi {}'.format(
+            self.data_uploaded['method']
+        )
+    	# self.widget_test_md2fill()
     #     print(hasattr(self, 'data_uploaded'))
     #     if hasattr(self, 'data_uploaded'):
     #         print('new metadata from uploaded')
@@ -199,7 +203,7 @@ class geo_metadata(object):
         self.vbox_export = widgets.VBox(self.widget_export)
 
 
-        tab  = widgets.Tab(children = [self.vbox_upload, 
+        tab  = widgets.Tab(children = [self.vbox_upload,
                                        self.vbox_export
                                       ])
         tab.set_title(0, 'Upload')
