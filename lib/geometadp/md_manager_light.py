@@ -1,7 +1,7 @@
 import sys
 import ipywidgets as widgets
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QFileDialog
+#from PyQt5.QtWidgets import QApplication
+#from PyQt5.QtWidgets import QFileDialog
 import json
 import dicttoxml
 from IPython.core.display import display
@@ -60,10 +60,62 @@ def debounce(wait):
         return debounced
     return decorator
 
+#class _widget_select_jsonfile(object):
+
+    #def __init__(self, output_dict, key, help_text, callback=None):
+        #dlg = QFileDialog()
+        #dlg.setFileMode(QFileDialog.AnyFile)
+        #dlg.setFilter("json files (*.json)")
+        #filenames = QStringList()
+
+    #def _button_click(self, x):
+        #directory = self._select_dir()
+        #self.label.value = directory
+        #self.output_dict[self.key] = directory
+        #if self.callback is not None:
+        #    self.callback()
+            
+
+
+#class _widget_select_directory(object):
+   # """Use the QT5 widget to select a directory
+   #"""
+    #def __init__(self, output_dict, key, help_text, callback=None):
+        #self.dialog = QFileDialog(None)
+        #self.dialog.setFileMode(QFileDialog.Directory)
+        #self.dialog.setOption(self.dialog.ShowDirsOnly, True)
+        #self.output_dict = output_dict
+        #self.key = key
+        #self.help_text = help_text
+        #self.callback = callback
+
+    #def _select_dir(self):
+        #fname = self.dialog.getExistingDirectory(
+        #    None,
+        #    self.help_text,
+            # '/',
+        #)
+        #return fname
+
+    #def _button_click(self, x):
+        #directory = self._select_dir()
+        #self.label.value = directory
+        #self.output_dict[self.key] = directory
+        #if self.callback is not None:
+        #    self.callback()
+
+    #def get_widget(self):
+
+        #button = widgets.Button(description=self.help_text)
+        #self.label = widgets.Label()
+
+        #button.on_click(self._button_click)
+        #return widgets.HBox([button, self.label])
+
 
 class geo_metadata(object):
     def __init__(self):
-        self.app = QApplication(sys.argv)
+        #self.app = QApplication(sys.argv)
 
         # this stores the actual values exported to json/xml
         self.metadata = {}
@@ -77,7 +129,7 @@ class geo_metadata(object):
         self.widget_quality = []
         self.widget_sampling = []
         self.widget_data_structure = []
-        self.widget_export = []
+        self.widget_Wexport = []
 
         self._prepare_widgets()
 
@@ -136,7 +188,7 @@ class geo_metadata(object):
 
         #%% Import/ Export 
         #self.widget_import_export.append(self._widget_import_export_buttons())
-        self.widget_export.append(self._widget_export())
+        self.widget_Wexport.append(self._widget_export())
 
     def _widget_header(self):
         """Show the header of the data mangement gui that explains the basic concepts
@@ -700,7 +752,7 @@ class geo_metadata(object):
     def _widget_export(self):
         """Preview of metadata export"""
 
-        self.export = widgets.HTML()
+        self.widget_export = widgets.HTML()
         self.export_type = widgets.RadioButtons(
             options=['JSON', 'XML'],
             default='JSON',
@@ -713,7 +765,7 @@ class geo_metadata(object):
                     'background-color:gray"><hr />' +
                     '<h3>Preview of metadata export:<h3 />'),
                 self.export_type,
-                self.export
+                self.widget_export
             ]
         )
 
@@ -744,7 +796,7 @@ class geo_metadata(object):
             metadata_str = self.export_metadata_to_xml_str()
         import html
         # self.widget_export.value = metadata_str
-        self.export.value = "<pre>{}</pre>".format(
+        self.widget_export.value = "<pre>{}</pre>".format(
             html.escape(metadata_str))
 
     def manage(self):
@@ -756,7 +808,7 @@ class geo_metadata(object):
         self.vbox_quality = widgets.VBox(self.widget_quality)
         self.vbox_sampling = widgets.VBox(self.widget_sampling)
         #self.vbox_data_structure = widgets.VBox(self.widget_data_structure)
-        self.vbox_export = widgets.VBox(self.widget_export)
+        self.vbox_export = widgets.VBox(self.widget_Wexport)
 
         accordion_tab0 = widgets.Accordion(children=[self.vbox, self.vbox_survey])
         accordion_tab0.set_title(0, 'Owner')
@@ -771,8 +823,6 @@ class geo_metadata(object):
         
         
         self._update_widget_export()
-
-
         tab  = widgets.Tab(children = [vbox_tab0, 
                                        self.vbox_ERT,
                                        self.vbox_EM,                                       
