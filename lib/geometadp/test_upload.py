@@ -73,16 +73,6 @@ class geo_metadata(object):
 
         self.widget_md2fill.observe(_observe_test_md2fill)
 
-
-        print('json file uploaded?: ' + str(hasattr(self, 'data_uploaded'))) # check if data has been uploaded
-        if hasattr(self, 'data_uploaded'):
-            print('replace init value by metadata uploaded from JSON file')
-
-            @debounce(0.2)
-            def _on_change(change):
-                self.widget_md2fill.value = self.metadata['Metadata to fill'] # change initial widget value
-            self.widget_md2fill.observe(_on_change)
-
         return self.widget_md2fill
 
     def _widget_upload_json(self):
@@ -128,17 +118,7 @@ class geo_metadata(object):
         self.widget_md2fill.value = 'maxi {}'.format(
             self.data_uploaded['method']
         )
-    	# self.widget_test_md2fill()
-    #     print(hasattr(self, 'data_uploaded'))
-    #     if hasattr(self, 'data_uploaded'):
-    #         print('new metadata from uploaded')
-    #         @debounce(0.2)
-    #         def _on_change(change):
-    #             self.widget_md2fill.value = self.metadata['Metadata to fill']
-    #             #print(widget_parse_json.value)
-    #         self.widget_md2fill.observe(_on_change)
 
-    #     return self.widget_md2fill
 
     def _parse_json(self):
         """Fill out metadata container (for export)"""
