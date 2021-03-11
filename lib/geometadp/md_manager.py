@@ -7,6 +7,8 @@ import dicttoxml
 from IPython.core.display import display
 import ipydatetime
 from ipywidgets import FileUpload, Button
+from IPython.display import FileLink
+import html
 
 #from file_import_qt5 as fileImportQt5
 
@@ -26,6 +28,9 @@ Requirements for widget objects
 """
 import asyncio
 
+# some css
+style = {'description_width': '300px'}
+layout = {'width': '400px'}
 
 # https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20Events.html#Debouncing
 class Timer:
@@ -67,6 +72,7 @@ class geo_metadata(object):
 
         # this stores the actual values exported to json/xml
         self.metadata = {}
+        self.warnings = [] # report all the warmings
 
         # stores the various widget objects. They are shown in this order
         self.widget_guidelines = []
@@ -77,7 +83,11 @@ class geo_metadata(object):
         self.widget_quality = []
         self.widget_sampling = []
         self.widget_data_structure = []
+
+        self.widget_upload = []
         self.widget_export = []
+        self.widget_logger = []
+
 
         self._prepare_widgets()
 
@@ -134,13 +144,30 @@ class geo_metadata(object):
         #self.widget_data_structure.append(self._widget_data_directory())
         #self.widget_data_structure.append(self._widget_output_directory())
 
-        #%% Import/ Export 
-        #self.widget_import_export.append(self._widget_import_export_buttons())
+        #%% Upload 
         self.widget_export.append(self._widget_export())
+        self.widget_export.append(self._widget_download_buttons())
+
+        #%% Export 
+        self.widget_upload.append(self._widget_upload_json())
+        self.widget_upload.append(self._widget_upload_button())
+
+        #%% Logger
+        self.widget_logger.append(self._widget_log())
 
     def _widget_header(self):
         """Show the header of the data mangement gui that explains the basic concepts
         """
+
+        file = open("img/logo.png", "rb")
+        image = file.read()
+        logo = widgets.Image(
+            value=image,
+            format='png',
+            width=30,
+            height=30,
+        )
+
         title = widgets.HTML(
             '<h2>Data Manager and Metadata Collector for CGAGS - DEV version <h2/>')
         text = widgets.HTML('''
@@ -150,7 +177,7 @@ class geo_metadata(object):
             Note that this is a lightened version of the metadata manager as the full version must be run locally to interact with files. See github for <a href="https://github.com/agrogeophy/geometadp" target="_blank">more informations.</a> 
             ''')
 
-        vbox = widgets.VBox([title, text])
+        vbox = widgets.VBox([logo, title, text])
         return vbox
 
 #%% REPORT: title/authors
@@ -158,8 +185,8 @@ class geo_metadata(object):
     def _widget_report_title(self):
         self.widget_report_title = widgets.Text(
             description='Short title description of the dataset',
-            style={'description_width': 'initial'}
-        )
+            style=style,
+            layout=layout)
 
         @debounce(0.2)
         def _observe_report_title(change):
@@ -742,12 +769,126 @@ class geo_metadata(object):
             metadata_str = self.export_metadata_to_json_str()
         else:
             metadata_str = self.export_metadata_to_xml_str()
-        import html
         # self.widget_export.value = metadata_str
         self.export.value = "<pre>{}</pre>".format(
             html.escape(metadata_str))
 
+
+    def _widget_upload_json(self):
+        """upload json file and parse values
+        """
+        title = widgets.HTML(
+        '<h2>upload json file<h2/>')
+        text = widgets.HTML('''
+        Replace all the field by the uploaded json fields
+        ''')
+        vbox = widgets.VBox([title, text])
+        return vbox
+
+    def _widget_upload_button(self):
+       """Import pre-existing JSON file"""
+
+       self.json_upload = widgets.FileUpload(
+               accept='.json',  # Accepted file extension
+               multiple=False  # True to accept multiple files upload else False
+           )
+
+       vbox = widgets.VBox([self.json_upload])
+
+
+       def on_upload_change(change):
+            print('Upload file')
+
+            for name, file_info in self.json_upload.value.items():
+                with open(name) as json_file:
+                    self.data_uploaded = json.load(json_file)
+
+            self._parse_json()
+            self._update_fields_values()
+
+       self.json_upload.observe(on_upload_change, names='_counter')
+
+
+       return vbox
+
+    def _update_fields_values(self):
+        """Update all fields from uploaded JSON"""
+        json_tmp = json.dumps(self.data_uploaded, indent=0)
+        mylist = json.loads(json_tmp)
+        for i in enumerate(mylist):
+            if hasattr(self, 'widget_' + str(i[1])):
+               widget2fill = eval('self.widget_' + str(i[1]) )
+               widget2fill.value = 'maxi {}'.format(self.data_uploaded[i[1]])
+
+
+
+    def _parse_json(self):
+        """Fill out metadata container (for export)"""
+        for i in enumerate(self.data_uploaded):
+            if hasattr(self, 'widget_' + i[1]):
+                self.metadata[i[1]] = self.data_uploaded[i[1]]
+            else:
+                warning = 'metadata no matching:' + str(i[1])
+                self.warnings.append(warning) 
+                self._update_widget_log()
+
+
+    def _widget_download_buttons(self):
+       """Download JSON file"""
+
+       self.download = widgets.ToggleButton(
+                value=False,
+                description='Download',
+                disabled=False,
+                button_style='', # 'success', 'info', 'warning', 'danger' or ''
+                tooltip='Download',
+                icon='download' # (FontAwesome names without the `fa-` prefix)
+            )
+
+       vbox = widgets.VBox([self.download])
+
+       def on_download_change(change): # read an display
+            link2file = FileLink(r'json2import.json')
+            linkwidget = widgets.HTML(
+                        value="<a href={code}>link2file to click</a>".format(code=link2file),
+                        placeholder='Some HTML',
+                        description='Some HTML',
+            )
+
+            display(linkwidget)
+
+       self.download.observe(on_download_change)
+
+       return vbox
+
+    def _widget_log(self):
+        """Report errors
+        """
+        self.log = widgets.HTML()
+        vbox = widgets.VBox(
+            [
+                widgets.HTML(
+                    '<h2>Logger<h2/>'),
+                widgets.HTML('''
+                    <hr style="height:1px;border-width:0;color:black;background-color:gray">
+                    Before downloading your metadata pay attention to the following warmings:
+                    '''),
+                    self.log
+            ]
+        )
+
+        return vbox
+
+    def _update_widget_log(self):
+        """Report errors
+        """
+        warnings_raw = json.dumps(self.warnings)
+        self.log.value = "<pre>{}</pre>".format(html.escape(warnings_raw))
+        #self.log.value  = ' '.join(self.warnings)
+        # self.log.value  = self.warnings
+
     def manage(self):
+
         self.vbox_guidelines = widgets.VBox(self.widget_guidelines)
         self.vbox = widgets.VBox(self.widget_objects)
         self.vbox_survey = widgets.VBox(self.widget_survey)
@@ -755,8 +896,11 @@ class geo_metadata(object):
         self.vbox_EM = widgets.VBox(self.widget_EM)
         self.vbox_quality = widgets.VBox(self.widget_quality)
         self.vbox_sampling = widgets.VBox(self.widget_sampling)
-        #self.vbox_data_structure = widgets.VBox(self.widget_data_structure)
+        self.vbox_upload = widgets.VBox(self.widget_upload)
         self.vbox_export = widgets.VBox(self.widget_export)
+        self.vbox_logger = widgets.VBox(self.widget_logger)
+        #self.vbox_data_structure = widgets.VBox(self.widget_data_structure)
+
 
         accordion_tab0 = widgets.Accordion(children=[self.vbox, self.vbox_survey])
         accordion_tab0.set_title(0, 'Owner')
@@ -779,14 +923,18 @@ class geo_metadata(object):
                                        self.vbox_quality,
                                        self.vbox_sampling,
                                        #self.vbox_data_structure,
-                                       self.vbox_export
+                                       self.vbox_upload,
+                                       self.vbox_export,
+                                       self.vbox_logger
                                       ])
         tab.set_title(0, 'Home')
         tab.set_title(1, 'ERT')
         tab.set_title(2, 'EM')
         tab.set_title(3, 'Quality')
         tab.set_title(4, 'Sampling')
+        tab.set_title(5, 'Upload')
+        tab.set_title(6, 'Export')
         #tab.set_title(5, 'Data structure')
-        tab.set_title(5, 'Export')
+        tab.set_title(7, 'Logger')
 
         display(tab)
