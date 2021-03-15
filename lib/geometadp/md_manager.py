@@ -9,7 +9,11 @@ import ipydatetime
 from ipywidgets import FileUpload, Button
 from IPython.display import FileLink
 import html
-
+from ipyleaflet import Map, basemaps, basemap_to_tiles, GeoJSON
+from ipywidgets import Layout, HBox, VBox, FloatText
+from ipywidgets import *
+import pandas as pd
+import numpy as np
 #from file_import_qt5 as fileImportQt5
 
 """
@@ -78,6 +82,8 @@ class geo_metadata(object):
         self.widget_guidelines = []
         self.widget_objects = []
         self.widget_survey = []
+        self.widget_survey_map = []
+
         self.widget_ERT = []
         self.widget_EM = []
         self.widget_quality = []
@@ -107,8 +113,14 @@ class geo_metadata(object):
         self.widget_survey.append(self._widget_measurement_type())
         self.widget_survey.append(self._widget_dataset_DOI())
         self.widget_survey.append(self._widget_variables())
-        self.widget_survey.append(self._widget_location_bounds())
+        # self.widget_survey.append(self._widget_location_bounds()) # deprecated (use leaflet instead)
+
+        # SURVEY: map
+        self.widget_survey_map.append(self._widget_leaflet())
+        # self.widget_survey_map.append(self._widget_upload_GeoJSON_button())
         
+
+
         #%% ERT metadata: Date_measure/ Time_measure/ Elec_conf/ Elec_spacing
         self.widget_ERT.append(self._widgets_ERT_doc())
         self.widget_ERT.append(self._widget_instrument())
@@ -118,6 +130,8 @@ class geo_metadata(object):
         self.widget_ERT.append(self._widget_elec_seq())
         self.widget_ERT.append(self._widget_elec_spacing())
         self.widget_ERT.append(self._widget_free_ERT())
+        self.widget_ERT.append(self._widget_elec_geom())
+
 
         #%% EM metadata
         self.widget_EM.append(self._widgets_EM_doc())
@@ -182,6 +196,14 @@ class geo_metadata(object):
 
 #%% REPORT: title/authors
 
+    # def validate(change):
+    #     # Put your validation condition here
+    #     if change['new'] > 50:
+    #         self.widget_report_title.value = change['old']
+
+    # text.observe(validate, 'value')
+
+
     def _widget_report_title(self):
         self.widget_report_title = widgets.Text(
             description='Short title description of the dataset',
@@ -199,7 +221,7 @@ class geo_metadata(object):
     def _widget_report_authors(self):
         self.widget_report_authors = widgets.Text(
             description='Reporting authors names',
-            style={'description_width': 'initial'}
+            style={'description_width': 'initial'},
         )
 
         @debounce(0.2)
@@ -264,19 +286,153 @@ class geo_metadata(object):
         self.widget_variables.observe(_observe_variables)
         return self.widget_variables
 
-    def _widget_location_bounds(self):
-        self.widget_location_bounds = widgets.Text(
-            description='North, West, East, and South Bounding Latitudes:',
-            style={'description_width': 'initial'}
-            )
+    # def _widget_location_bounds(self):
+    #     self.widget_location_bounds = widgets.Text(
+    #         description='North, West, East, and South Bounding Latitudes:',
+    #         style={'description_width': 'initial'}
+    #         )
+
+    #     @debounce(0.2)
+    #     def _observe_location_bounds(change):
+    #         self.metadata['location_bounds'] = self.widget_location_bounds.value
+    #         self._update_widget_export()
+
+    #     self.widget_location_bounds.observe(_observe_location_bounds)
+    #     return self.widget_location_bounds
+
+
+
+    def _widget_upload_GeoJSON_button(self):
+       """Import GeoJSON file"""
+
+       self.geojson_upload = widgets.FileUpload(
+               description = 'geo.json',
+               accept='.json',  # Accepted file extension
+               multiple=False  # True to accept multiple files upload else False
+           )
+
+       vbox = widgets.VBox([self.geojson_upload])
+
+       def _on_upload_change(change):
+            print('Upload file')
+
+            for name, file_info in self.geojson_upload.value.items():
+                with open(name, 'r') as f:
+                    self.geojson_data = json.load(f)
+
+                # self._overlay_layer()
+                # print(self.geojson_data['features'])
+                # for feature in self.geojson_data['features']:
+                #     feature['properties']['style'] = {
+                #         'color': 'grey',
+                #         'weight': 1,
+                #         'fillColor': 'grey',
+                #         'fillOpacity': 0.5
+                #     }
+                #     geo = GeoJSON(data=self.geojson_data, hover_style={'fillColor': 'red'}, name='Countries')
+                #     self.m_top.add_layer(geo)
+                #     # print(self.m_top)
+                #     # print(self.m_top.basemap)
+                geo_json = GeoJSON( data=data,
+                                    style={'opacity': 1, 'dashArray': '9', 'fillOpacity': 0.1, 'weight': 1},
+                                    hover_style={'color': 'white', 'dashArray': '0', 'fillOpacity': 0.5},
+                                    style_callback=random_color
+                                )
+                self.m_top.add_layer(geo_json)
+                
+
+       @debounce(0.2)
+       def _observe_geojson(change):
+            # print('print to metadata')
+            for name, file_info in self.geojson_upload.value.items():
+                # print(name)
+                self.metadata['geojson_file'] = name
+                self._update_widget_export()
+
+
+
+       self.geojson_upload.observe(_on_upload_change, names='_counter') # plot into leaflet
+       self.geojson_upload.observe(_observe_geojson) # add to metadata export
+       # self.self.m_top.observe(_observe_geojson) # add to metadata export
+
+       return vbox
+
+
+    def _overlay_layer():
+        for feature in self.geojson_data['features']:
+            feature['properties']['style'] = {
+                'color': 'grey',
+                'weight': 1,
+                'fillColor': 'grey',
+                'fillOpacity': 0.5
+            }
+        geo = GeoJSON(data=self.geojson_data, hover_style={'fillColor': 'red'}, name='Countries')
+
+        return geo
+
+
+    def _widget_leaflet(self):
+
+        header = HTML("<h3>Import tools for 1d to 2d maps</h3>", layout=Layout(height='auto'))
+        header.style.text_align='center'
+        details = HTML("For geophysical maps and 2d lines, import directly a geojson file", layout=Layout(height='auto'))
+
+
+        center = [40, 0]
+
+        self.m_top = Map(
+            center=center, zoom=-10, 
+            basemap=basemaps.Esri.WorldTopoMap, 
+            attribution_control=False, 
+            zoom_control=True, 
+            width='100%',
+            # layout=Layout(height='800px'),
+            flex=1
+        )
+
+        # Create the two text boxes
+        self.widget_latitude = widgets.Text(
+            value=str(center[0]),
+            description='Lat:'
+        )
+
+        self.widget_longitude = widgets.Text(
+            value= str(center[1]),
+            description='Lng:'
+        )
+
+        # Create a buton for GeoJson import
+        vbox_geojson = self._widget_upload_GeoJSON_button()
+
 
         @debounce(0.2)
         def _observe_location_bounds(change):
-            self.metadata['location_bounds'] = self.widget_location_bounds.value
+            self.metadata['latitude'] = self.widget_latitude.value
+            self.metadata['longitude'] = self.widget_longitude.value
             self._update_widget_export()
 
-        self.widget_location_bounds.observe(_observe_location_bounds)
-        return self.widget_location_bounds
+            # Create a callback for when the center of the map has changed
+            def on_coord_change(change):
+                new_center = change['new']
+                center[0] = self.widget_latitude.value
+                center[1] = int(self.widget_longitude.value)
+
+            self.m_top.observe(on_coord_change, names='center')
+
+
+        self.widget_latitude.observe(_observe_location_bounds)
+        self.widget_longitude.observe(_observe_location_bounds)
+
+
+        # Create the horizontal container containing the two textboxes
+        hbox = widgets.HBox([self.widget_latitude, self.widget_longitude,vbox_geojson])
+
+        # Create the horizontal container containing the map and the horizontal container
+        vbox = widgets.VBox([header, hbox,self.m_top])
+
+        # And display it
+        return vbox
+
 
     #%% SURVEY: method/type/instrument
 
@@ -406,9 +562,6 @@ class geo_metadata(object):
         if  self.metadata['method'] is 'Geoelectrical - ERT':
             elec_config.layout.display   = 'block'
 
-
-
-
         # set initial metadata
         # self.metadata['elec_config'] = '1D'
 
@@ -418,6 +571,69 @@ class geo_metadata(object):
 
         elec_config.observe(_observe_elec_config)
         return elec_config
+
+
+
+    def _widget_elec_geom(self):
+
+        # Data examples
+        my_columns = list(['elecs_geom', 'other'])
+        df = pd.DataFrame(np.random.randint(0,100,size=(100, np.shape(my_columns)[0])), columns=my_columns)
+
+        # Our filter generator
+        def generate_filter(button):
+            # Check if exist before creating
+            new_widget = widgets.Text(description=select_definition.value) # Value from the user
+            # Append created filter
+            filters.children=tuple(list(filters.children) + [new_widget])
+            choose_filter = widgets.HBox([select_definition, button, filters])
+
+            @debounce(0.2)
+            def _observe_filter(change):
+                self.metadata[select_definition.value] = new_widget.value
+                self._update_widget_export()
+
+            new_widget.observe(_observe_filter)
+
+
+        # Define Dropdown 
+        select_definition = widgets.Dropdown(options=my_columns, layout=Layout(width='10%'))
+
+        button = widgets.Button(description="Add")  
+        # Define button and event
+        button.on_click(generate_filter)
+
+        # Where we will put all our filters
+        filters = widgets.VBox()
+        # Put Dropdown and button together
+        choose_filter = widgets.VBox([select_definition, button, filters])
+
+
+
+
+
+        return choose_filter
+
+
+        # button = widgets.Button(description="Add elecs .XYZ")
+
+        # def _gen_widget_ERT_geom(self):
+        #     self.widget_elec_geom = widgets.Text(
+        #         description='Free ERT metadata to add',
+        #         style={'description_width': 'initial'}
+        #         )
+        #     # Append created filter
+        #     filters.children=tuple(list(filters.children) + [new_filter])
+
+        # def _observe_elec_geom(change):
+        #     self.metadata['elec_geom'] = self.widget_elec_geom.value
+        #     self._update_widget_export()
+
+        #     self.widget_elec_geom.observe(_observe_elec_geom)
+
+        # button.on_click(_gen_widget_ERT_geom)
+
+
 
     def _widget_elec_seq(self):
         elec_seq = widgets.RadioButtons(
@@ -798,6 +1014,7 @@ class geo_metadata(object):
 
        def on_upload_change(change):
             print('Upload file')
+            print(self.json_upload.value)
 
             for name, file_info in self.json_upload.value.items():
                 with open(name) as json_file:
@@ -892,6 +1109,7 @@ class geo_metadata(object):
         self.vbox_guidelines = widgets.VBox(self.widget_guidelines)
         self.vbox = widgets.VBox(self.widget_objects)
         self.vbox_survey = widgets.VBox(self.widget_survey)
+        self.vbox_survey_map = widgets.VBox(self.widget_survey_map)
         self.vbox_ERT = widgets.VBox(self.widget_ERT)
         self.vbox_EM = widgets.VBox(self.widget_EM)
         self.vbox_quality = widgets.VBox(self.widget_quality)
@@ -902,9 +1120,10 @@ class geo_metadata(object):
         #self.vbox_data_structure = widgets.VBox(self.widget_data_structure)
 
 
-        accordion_tab0 = widgets.Accordion(children=[self.vbox, self.vbox_survey])
+        accordion_tab0 = widgets.Accordion(children=[self.vbox, self.vbox_survey, self.vbox_survey_map])
         accordion_tab0.set_title(0, 'Owner')
         accordion_tab0.set_title(1, 'General Survey description')
+        accordion_tab0.set_title(2, 'Geolocalisation')
         
         vbox_tab0 = widgets.VBox([self.vbox_guidelines,accordion_tab0])
                           
