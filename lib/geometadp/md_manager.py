@@ -137,7 +137,7 @@ class geo_metadata(object):
         self.widget_ERT.append(self._widget_elec_seq())
         self.widget_ERT.append(self._widget_elec_spacing())
         self.widget_ERT.append(self._widget_free_ERT())
-        self.widget_ERT.append(self._widget_elec_geom())
+        self.widget_ERT.append(self._widget_ERT_more())
         self.widget_ERT_upload.append(self._widget_upload_ERT())  # not yet implemented
 
 
@@ -164,8 +164,9 @@ class geo_metadata(object):
 
         #%% DATA structure 
         self.widget_data_structure.append(self._widgets_dataset_structure_doc())
-        #self.widget_data_structure.append(self._widget_data_directory())
-        #self.widget_data_structure.append(self._widget_output_directory())
+
+        #%% ancillary DATA 
+        # self.widget_ancillary.data.append(self._widgets_figures())
 
         #%% Upload 
         self.widget_export.append(self._widget_export())
@@ -482,7 +483,7 @@ class geo_metadata(object):
         title = widgets.HTML('''
             <h3> Survey metadata </h3>
             <hr style="height:1px;border-width:0;color:black;background-color:gray">
-             For the choice of the method please report to <a href="https://agrogeophy.github.io/datasets/glossary.html">the online documentation glossary</a>
+             For the choice of the method please report to <a href="https://agrogeophy.github.io/datasets/glossary.html" "target"="_blank">the online documentation glossary</a>
              ''')
         vbox = widgets.VBox([title])
         return vbox
@@ -616,10 +617,10 @@ class geo_metadata(object):
 
 
 
-    def _widget_elec_geom(self):
+    def _widget_ERT_more(self):
 
         # Data examples
-        my_columns = list(['elecs_geom', 'other'])
+        my_columns = list(['elecs_geom (upload .xyz ascii file'])
         df = pd.DataFrame(np.random.randint(0,100,size=(100, np.shape(my_columns)[0])), columns=my_columns)
 
         # Our filter generator
@@ -649,9 +650,6 @@ class geo_metadata(object):
         filters = widgets.VBox()
         # Put Dropdown and button together
         choose_filter = widgets.VBox([select_definition, button, filters])
-
-
-
 
 
         return choose_filter
