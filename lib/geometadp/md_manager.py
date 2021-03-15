@@ -9,11 +9,13 @@ import ipydatetime
 from ipywidgets import FileUpload, Button
 from IPython.display import FileLink
 import html
-from ipyleaflet import Map, basemaps, basemap_to_tiles, GeoJSON
+from ipyleaflet import Map, basemaps, basemap_to_tiles, GeoJSON, Marker
 from ipywidgets import Layout, HBox, VBox, FloatText
 from ipywidgets import *
 import pandas as pd
 import numpy as np
+from IPython.display import display, clear_output
+
 #from file_import_qt5 as fileImportQt5
 
 """
@@ -85,7 +87,11 @@ class geo_metadata(object):
         self.widget_survey_map = []
 
         self.widget_ERT = []
+        self.widget_ERT_upload = []
+
         self.widget_EM = []
+        self.widget_EM_upload = []
+
         self.widget_quality = []
         self.widget_sampling = []
         self.widget_data_structure = []
@@ -109,6 +115,8 @@ class geo_metadata(object):
 
         # SURVEY: method/type/instrument
         self.widget_survey.append(self._widgets_survey_doc())
+        # self.widget_survey.append(self._widget_upload_CAGS()) # not yet implemented
+
         self.widget_survey.append(self._widget_method())
         self.widget_survey.append(self._widget_measurement_type())
         self.widget_survey.append(self._widget_dataset_DOI())
@@ -117,7 +125,6 @@ class geo_metadata(object):
 
         # SURVEY: map
         self.widget_survey_map.append(self._widget_leaflet())
-        # self.widget_survey_map.append(self._widget_upload_GeoJSON_button())
         
 
 
@@ -131,6 +138,7 @@ class geo_metadata(object):
         self.widget_ERT.append(self._widget_elec_spacing())
         self.widget_ERT.append(self._widget_free_ERT())
         self.widget_ERT.append(self._widget_elec_geom())
+        self.widget_ERT_upload.append(self._widget_upload_ERT())  # not yet implemented
 
 
         #%% EM metadata
@@ -139,6 +147,7 @@ class geo_metadata(object):
         self.widget_EM.append(self._widget_coil_height())
         self.widget_EM.append(self._widget_coil_spacing())
         self.widget_EM.append(self._widget_free_EM())
+        self.widget_EM_upload.append(self._widget_upload_EM())  # not yet implemented
 
         #%% DATA QUALITY ASSESSEMENT metadata
         self.widget_quality.append(self._widgets_quality_doc())
@@ -216,6 +225,8 @@ class geo_metadata(object):
             self._update_widget_export()
 
         self.widget_report_title.observe(_observe_report_title)
+        self.widget_report_title.add_class("box_style")
+
         return self.widget_report_title
 
     def _widget_report_authors(self):
@@ -333,12 +344,12 @@ class geo_metadata(object):
                 #     self.m_top.add_layer(geo)
                 #     # print(self.m_top)
                 #     # print(self.m_top.basemap)
-                geo_json = GeoJSON( data=data,
+                self.geo_json = GeoJSON( data=self.geojson_data,
                                     style={'opacity': 1, 'dashArray': '9', 'fillOpacity': 0.1, 'weight': 1},
                                     hover_style={'color': 'white', 'dashArray': '0', 'fillOpacity': 0.5},
-                                    style_callback=random_color
                                 )
-                self.m_top.add_layer(geo_json)
+                # self.m_top.basemap = self.geo_json
+                self.m_top.add_layer(self.geo_json)
                 
 
        @debounce(0.2)
@@ -358,17 +369,17 @@ class geo_metadata(object):
        return vbox
 
 
-    def _overlay_layer():
-        for feature in self.geojson_data['features']:
-            feature['properties']['style'] = {
-                'color': 'grey',
-                'weight': 1,
-                'fillColor': 'grey',
-                'fillOpacity': 0.5
-            }
-        geo = GeoJSON(data=self.geojson_data, hover_style={'fillColor': 'red'}, name='Countries')
+    # def _overlay_layer():
+    #     for feature in self.geojson_data['features']:
+    #         feature['properties']['style'] = {
+    #             'color': 'grey',
+    #             'weight': 1,
+    #             'fillColor': 'grey',
+    #             'fillOpacity': 0.5
+    #         }
+    #     geo = GeoJSON(data=self.geojson_data, hover_style={'fillColor': 'red'}, name='Countries')
 
-        return geo
+    #     return geo
 
 
     def _widget_leaflet(self):
@@ -378,15 +389,16 @@ class geo_metadata(object):
         details = HTML("For geophysical maps and 2d lines, import directly a geojson file", layout=Layout(height='auto'))
 
 
-        center = [40, 0]
+        center = [0, 0]
 
         self.m_top = Map(
-            center=center, zoom=-10, 
+            zoom=-10, 
             basemap=basemaps.Esri.WorldTopoMap, 
             attribution_control=False, 
             zoom_control=True, 
             width='100%',
-            # layout=Layout(height='800px'),
+			fullscreenControl=True,
+			# layout=Layout(height='800px'),
             flex=1
         )
 
@@ -405,7 +417,6 @@ class geo_metadata(object):
         vbox_geojson = self._widget_upload_GeoJSON_button()
 
 
-        @debounce(0.2)
         def _observe_location_bounds(change):
             self.metadata['latitude'] = self.widget_latitude.value
             self.metadata['longitude'] = self.widget_longitude.value
@@ -413,9 +424,8 @@ class geo_metadata(object):
 
             # Create a callback for when the center of the map has changed
             def on_coord_change(change):
-                new_center = change['new']
-                center[0] = self.widget_latitude.value
-                center[1] = int(self.widget_longitude.value)
+                marker = Marker(location=[self.widget_latitude.value,  self.widget_longitude.value], draggable=False)
+                self.m_top.add_layer(marker);
 
             self.m_top.observe(on_coord_change, names='center')
 
@@ -424,11 +434,43 @@ class geo_metadata(object):
         self.widget_longitude.observe(_observe_location_bounds)
 
 
+        bmap = widgets.Button(
+            description='Show on map',
+            disabled=False,
+            button_style='info',
+            tooltip='Click me',
+            icon='check'
+        )
+        # display(b)
+
+        out = widgets.Output()
+        # display(out)
+
+        def on_button_clicked(bmap):
+            with out:
+                clear_output()
+                # self.m_top.clear_layers()
+                # self.m_top = Map(
+                #     zoom=-10, 
+                #     basemap=basemaps.Esri.WorldTopoMap, 
+                #     attribution_control=False, 
+                #     zoom_control=True, 
+                #     width='100%',
+                #     fullscreenControl=True,
+                #     # layout=Layout(height='800px'),
+                #     flex=1
+                #     )
+                display(self.m_top)
+
+        bmap.on_click(on_button_clicked)
+
         # Create the horizontal container containing the two textboxes
         hbox = widgets.HBox([self.widget_latitude, self.widget_longitude,vbox_geojson])
 
         # Create the horizontal container containing the map and the horizontal container
-        vbox = widgets.VBox([header, hbox,self.m_top])
+        vbox = widgets.VBox([header, hbox, bmap, out])
+        # vbox = widgets.VBox([header, hbox, self.m_top])
+        # vbox = widgets.VBox([self.m_top])
 
         # And display it
         return vbox
@@ -682,6 +724,20 @@ class geo_metadata(object):
         self.widget_free_ERT.observe(_observe_free_ERT)
         return self.widget_free_ERT
 
+    def _widget_upload_ERT(self):
+        """upload ERT file and parse metadata
+        """
+        title = widgets.HTML(
+        '<h2>upload ERT file<h2/>')
+        text = widgets.HTML('''
+        Infer all the ERT metadata from the ERT uploaded data
+        ''')
+        vbox = widgets.VBox([title, text])
+        return vbox
+
+
+
+
     #%% EM metadata
     def _widgets_EM_doc(self):
         title = widgets.HTML('''
@@ -760,6 +816,17 @@ class geo_metadata(object):
 
         self.widget_free_EM.observe(_observe_free_EM)
         return self.widget_free_EM
+
+    def _widget_upload_EM(self):
+        """upload ERT file and parse metadata
+        """
+        title = widgets.HTML(
+        '<h2>upload EM file<h2/>')
+        text = widgets.HTML('''
+        Infer all the EM metadata from the ERT uploaded data
+        ''')
+        vbox = widgets.VBox([title, text])
+        return vbox
 
 
     #%% DATA QUALITY ASSESSEMENT metadata
@@ -1107,11 +1174,17 @@ class geo_metadata(object):
     def manage(self):
 
         self.vbox_guidelines = widgets.VBox(self.widget_guidelines)
+
         self.vbox = widgets.VBox(self.widget_objects)
         self.vbox_survey = widgets.VBox(self.widget_survey)
         self.vbox_survey_map = widgets.VBox(self.widget_survey_map)
+
         self.vbox_ERT = widgets.VBox(self.widget_ERT)
+        self.vbox_upload_ERT_data = widgets.VBox(self.widget_ERT_upload)
+
         self.vbox_EM = widgets.VBox(self.widget_EM)
+        self.vbox_upload_EM_data = widgets.VBox(self.widget_EM_upload)
+
         self.vbox_quality = widgets.VBox(self.widget_quality)
         self.vbox_sampling = widgets.VBox(self.widget_sampling)
         self.vbox_upload = widgets.VBox(self.widget_upload)
@@ -1124,8 +1197,16 @@ class geo_metadata(object):
         accordion_tab0.set_title(0, 'Owner')
         accordion_tab0.set_title(1, 'General Survey description')
         accordion_tab0.set_title(2, 'Geolocalisation')
-        
+
+        accordion_tab_ERT = widgets.Accordion(children=[self.vbox_upload_ERT_data])
+        accordion_tab_ERT.set_title(0, 'Upload')
+
+        accordion_tab_EM = widgets.Accordion(children=[self.vbox_upload_EM_data])
+        accordion_tab_EM.set_title(0, 'Upload')
+
         vbox_tab0 = widgets.VBox([self.vbox_guidelines,accordion_tab0])
+        vbox_tab_ERT = widgets.VBox([self.vbox_ERT,accordion_tab_ERT])        
+        vbox_tab_EM = widgets.VBox([self.vbox_EM,accordion_tab_EM])
                           
         #self.vbox_import = widgets.VBox(self.upload_widget)
         # display(self.vbox)
@@ -1137,8 +1218,8 @@ class geo_metadata(object):
 
 
         tab  = widgets.Tab(children = [vbox_tab0, 
-                                       self.vbox_ERT,
-                                       self.vbox_EM,                                       
+                                       vbox_tab_ERT,
+                                       vbox_tab_EM,                                       
                                        self.vbox_quality,
                                        self.vbox_sampling,
                                        #self.vbox_data_structure,
