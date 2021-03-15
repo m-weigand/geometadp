@@ -9,12 +9,13 @@ import ipydatetime
 from ipywidgets import FileUpload, Button
 from IPython.display import FileLink
 import html
-from ipyleaflet import Map, basemaps, basemap_to_tiles, GeoJSON, Marker
+from ipyleaflet import Map, basemaps, basemap_to_tiles, GeoJSON, Marker, Polyline
 from ipywidgets import Layout, HBox, VBox, FloatText
 from ipywidgets import *
 import pandas as pd
 import numpy as np
 from IPython.display import display, clear_output
+import zipfile
 
 #from file_import_qt5 as fileImportQt5
 
@@ -78,7 +79,7 @@ class geo_metadata(object):
 
         # this stores the actual values exported to json/xml
         self.metadata = {}
-        self.warnings = [] # report all the warmings
+        self.warnings = [] # report all the warnings
 
         # stores the various widget objects. They are shown in this order
         self.widget_guidelines = []
@@ -312,6 +313,43 @@ class geo_metadata(object):
     #     self.widget_location_bounds.observe(_observe_location_bounds)
     #     return self.widget_location_bounds
 
+    def _widget_upload_XY_button(self):
+       """Import GeoJSON file"""
+
+       self.xy_upload = widgets.FileUpload(
+               description = 'xy_coord.csv',
+               accept='.csv',  # Accepted file extension
+               multiple=False  # True to accept multiple files upload else False
+           )
+
+       vbox = widgets.VBox([self.xy_upload])
+
+       def _on_upload_change(change):
+            print('Upload file')
+
+            for name, file_info in self.xy_upload.value.items():
+                self._add_to_Zip(name)
+                self.warnings.append('xy_file copied into zip') 
+                self._update_widget_log()
+
+                with open(name, newline='') as csvfile:
+                    self.xy_data = pd.read_csv(csvfile,sep=';') 
+
+                poly_line = Polyline(locations=self.xy_data.values.tolist(), color="red" , fill=False)
+                self.m_top.add_layer(poly_line)
+
+       @debounce(0.2)
+       def _observe_xy_coords(change):
+            for name, file_info in self.xy_upload.value.items():
+                self.metadata['xy_coords_file'] = name
+                self._update_widget_export()
+
+       self.xy_upload.observe(_on_upload_change, names='_counter') # plot into leaflet
+       self.xy_upload.observe(_observe_xy_coords) # add to metadata export
+       # self.self.m_top.observe(_observe_geojson) # add to metadata export
+
+       return vbox
+
 
 
     def _widget_upload_GeoJSON_button(self):
@@ -331,25 +369,10 @@ class geo_metadata(object):
             for name, file_info in self.geojson_upload.value.items():
                 with open(name, 'r') as f:
                     self.geojson_data = json.load(f)
-
-                # self._overlay_layer()
-                # print(self.geojson_data['features'])
-                # for feature in self.geojson_data['features']:
-                #     feature['properties']['style'] = {
-                #         'color': 'grey',
-                #         'weight': 1,
-                #         'fillColor': 'grey',
-                #         'fillOpacity': 0.5
-                #     }
-                #     geo = GeoJSON(data=self.geojson_data, hover_style={'fillColor': 'red'}, name='Countries')
-                #     self.m_top.add_layer(geo)
-                #     # print(self.m_top)
-                #     # print(self.m_top.basemap)
                 self.geo_json = GeoJSON( data=self.geojson_data,
                                     style={'opacity': 1, 'dashArray': '9', 'fillOpacity': 0.1, 'weight': 1},
                                     hover_style={'color': 'white', 'dashArray': '0', 'fillOpacity': 0.5},
                                 )
-                # self.m_top.basemap = self.geo_json
                 self.m_top.add_layer(self.geo_json)
                 
 
@@ -360,8 +383,6 @@ class geo_metadata(object):
                 # print(name)
                 self.metadata['geojson_file'] = name
                 self._update_widget_export()
-
-
 
        self.geojson_upload.observe(_on_upload_change, names='_counter') # plot into leaflet
        self.geojson_upload.observe(_observe_geojson) # add to metadata export
@@ -385,9 +406,9 @@ class geo_metadata(object):
 
     def _widget_leaflet(self):
 
-        header = HTML("<h3>Import tools for 1d to 2d maps</h3>", layout=Layout(height='auto'))
+        header = HTML("Import tools for 1d souding, 2d line and 2d maps", layout=Layout(height='auto'))
         header.style.text_align='center'
-        details = HTML("For geophysical maps and 2d lines, import directly a geojson file", layout=Layout(height='auto'))
+        details = HTML("For geophysical maps and 2d lines, import directly the respective file", layout=Layout(height='auto'))
 
 
         center = [0, 0]
@@ -403,6 +424,7 @@ class geo_metadata(object):
             flex=1
         )
 
+        # case of a souding data
         # Create the two text boxes
         self.widget_latitude = widgets.Text(
             value=str(center[0]),
@@ -414,8 +436,12 @@ class geo_metadata(object):
             description='Lng:'
         )
 
-        # Create a buton for GeoJson import
-        vbox_geojson = self._widget_upload_GeoJSON_button()
+        # case of a 2d line data
+        box_2dline = self._widget_upload_XY_button()
+
+        # case of a 2d map data
+        box_map = self._widget_upload_GeoJSON_button()
+
 
 
         def _observe_location_bounds(change):
@@ -435,6 +461,7 @@ class geo_metadata(object):
         self.widget_longitude.observe(_observe_location_bounds)
 
 
+        # show on map
         bmap = widgets.Button(
             description='Show on map',
             disabled=False,
@@ -442,31 +469,21 @@ class geo_metadata(object):
             tooltip='Click me',
             icon='check'
         )
-        # display(b)
 
         out = widgets.Output()
-        # display(out)
 
         def on_button_clicked(bmap):
             with out:
                 clear_output()
-                # self.m_top.clear_layers()
-                # self.m_top = Map(
-                #     zoom=-10, 
-                #     basemap=basemaps.Esri.WorldTopoMap, 
-                #     attribution_control=False, 
-                #     zoom_control=True, 
-                #     width='100%',
-                #     fullscreenControl=True,
-                #     # layout=Layout(height='800px'),
-                #     flex=1
-                #     )
                 display(self.m_top)
 
         bmap.on_click(on_button_clicked)
 
+
+        box_1d = widgets.HBox([self.widget_latitude, self.widget_longitude])
+
         # Create the horizontal container containing the two textboxes
-        hbox = widgets.HBox([self.widget_latitude, self.widget_longitude,vbox_geojson])
+        hbox = widgets.VBox([box_1d,details,box_2dline,box_map])
 
         # Create the horizontal container containing the map and the horizontal container
         vbox = widgets.VBox([header, hbox, bmap, out])
@@ -1143,31 +1160,53 @@ class geo_metadata(object):
 
        return vbox
 
+
+    def _add_to_Zip(self,filename):
+        self.z = zipfile.ZipFile("test.zip", "w")
+
+        def zipdir(path, ziph):
+            for root, dirs, files in os.walk(path):
+                for file in files:
+                    ziph.write(os.path.join(root, file))
+
+        zipdir('./geom/', self.z)
+        self.z.printdir()
+        self.z.write(filename)
+        self.z.close()
+
     def _widget_log(self):
         """Report errors
         """
-        self.log = widgets.HTML()
-        vbox = widgets.VBox(
-            [
-                widgets.HTML(
-                    '<h2>Logger<h2/>'),
-                widgets.HTML('''
+  
+        header= widgets.HTML(
+                    '<h2>Logger<h2/>')
+        text = widgets.HTML('''
                     <hr style="height:1px;border-width:0;color:black;background-color:gray">
-                    Before downloading your metadata pay attention to the following warmings:
-                    '''),
-                    self.log
-            ]
-        )
+                    Before downloading your metadata pay attention to the following warnings:
+                    ''')
+        self.log = widgets.HTML('')
 
-        return vbox
+        hbox = widgets.VBox([header,text,self.log])
+
+        return hbox
+
+
 
     def _update_widget_log(self):
         """Report errors
         """
-        warnings_raw = json.dumps(self.warnings)
-        self.log.value = "<pre>{}</pre>".format(html.escape(warnings_raw))
+        def ulify(elements):
+            string = "<ul>\n"
+            string += "\n".join(["<li>" + str(s) + "</li>" for s in elements])
+            string += "\n</ul>"
+            return string
+
+        self.string = ulify(self.warnings)
+
+        # warnings_raw = json.dumps(self.warnings)
+        # self.log.value = "<pre>{}</pre>".format(html.escape(warnings_raw))
         #self.log.value  = ' '.join(self.warnings)
-        # self.log.value  = self.warnings
+        self.log.value  = self.string
 
     def manage(self):
 
