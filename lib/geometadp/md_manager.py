@@ -16,6 +16,8 @@ import pandas as pd
 import numpy as np
 from IPython.display import display, clear_output
 import zipfile
+from emagpy import Problem # import the main Problem class from emagpy
+from datetime import date, datetime
 
 #from file_import_qt5 as fileImportQt5
 
@@ -101,6 +103,7 @@ class geo_metadata(object):
         self.widget_export = []
         self.widget_logger = []
 
+        self.widget_about = []
 
         self._prepare_widgets()
 
@@ -137,7 +140,7 @@ class geo_metadata(object):
         self.widget_ERT.append(self._widget_elec_config())
         self.widget_ERT.append(self._widget_elec_seq())
         self.widget_ERT.append(self._widget_elec_spacing())
-        self.widget_ERT.append(self._widget_free_ERT())
+        self.widget_ERT.append(self._widget_description_ERT())
         self.widget_ERT.append(self._widget_ERT_more())
         self.widget_ERT_upload.append(self._widget_upload_ERT())  # not yet implemented
 
@@ -147,8 +150,10 @@ class geo_metadata(object):
         self.widget_EM.append(self._widget_coil_config())
         self.widget_EM.append(self._widget_coil_height())
         self.widget_EM.append(self._widget_coil_spacing())
-        self.widget_EM.append(self._widget_free_EM())
+        self.widget_EM.append(self._widget_description_EM())
         self.widget_EM_upload.append(self._widget_upload_EM())  # not yet implemented
+        self.widget_EM_upload.append(self._widget_upload_EM_button())  # not yet implemented
+
 
         #%% DATA QUALITY ASSESSEMENT metadata
         self.widget_quality.append(self._widgets_quality_doc())
@@ -180,6 +185,9 @@ class geo_metadata(object):
         #%% Logger
         self.widget_logger.append(self._widget_log())
 
+        #%% About
+        self.widget_about.append(self._widget_about())
+
     def _widget_header(self):
         """Show the header of the data mangement gui that explains the basic concepts
         """
@@ -194,12 +202,13 @@ class geo_metadata(object):
         )
 
         title = widgets.HTML(
-            '<h2>Data Manager and Metadata Collector for CGAGS - DEV version <h2/>')
+            '<h2>Data Manager and Metadata Collector for CAGS - DEV version <h2/>')
         text = widgets.HTML('''
             This gui is designed to help with the initial preparation of one
             geophysical dataset metadata. In order to make the dataset FAIR, simple metadata descriptors must be filled. 
-            if you require additionnal dataset, please let us know by opening an issue <a href="https://github.com/agrogeophy/geometadp" target="_blank">on github </a>
+            if you require additionnal metadata, please let us know by opening an issue <a href="https://github.com/agrogeophy/geometadp" target="_blank">on github </a>
             Note that this is a lightened version of the metadata manager as the full version must be run locally to interact with files. See github for <a href="https://github.com/agrogeophy/geometadp" target="_blank">more informations.</a> 
+            Metdata templates for generic survey to upload are available on the github page.
             ''')
 
         vbox = widgets.VBox([logo, title, text])
@@ -329,8 +338,7 @@ class geo_metadata(object):
 
             for name, file_info in self.xy_upload.value.items():
                 self._add_to_Zip(name)
-                self.warnings.append('xy_file copied into zip') 
-                self._update_widget_log()
+                self._update_widget_log('xy_file copied into zip')
 
                 with open(name, newline='') as csvfile:
                     self.xy_data = pd.read_csv(csvfile,sep=';') 
@@ -666,30 +674,10 @@ class geo_metadata(object):
         # Where we will put all our filters
         filters = widgets.VBox()
         # Put Dropdown and button together
-        choose_filter = widgets.VBox([select_definition, button, filters])
-
+        add_filter = widgets.HBox([select_definition, button])
+        choose_filter = widgets.VBox([add_filter, filters])
 
         return choose_filter
-
-
-        # button = widgets.Button(description="Add elecs .XYZ")
-
-        # def _gen_widget_ERT_geom(self):
-        #     self.widget_elec_geom = widgets.Text(
-        #         description='Free ERT metadata to add',
-        #         style={'description_width': 'initial'}
-        #         )
-        #     # Append created filter
-        #     filters.children=tuple(list(filters.children) + [new_filter])
-
-        # def _observe_elec_geom(change):
-        #     self.metadata['elec_geom'] = self.widget_elec_geom.value
-        #     self._update_widget_export()
-
-        #     self.widget_elec_geom.observe(_observe_elec_geom)
-
-        # button.on_click(_gen_widget_ERT_geom)
-
 
 
     def _widget_elec_seq(self):
@@ -725,27 +713,30 @@ class geo_metadata(object):
         self.widget_elec_spacing.observe(_observe_widget_elec_spacing)
         return self.widget_elec_spacing
 
-    def _widget_free_ERT(self):
-        self.widget_free_ERT = widgets.Text(
-            description='Free ERT metadata to add',
-            style={'description_width': 'initial'}
+    def _widget_description_ERT(self):
+        self.widget_description_ERT = widgets.Text(
+            description='Short description of the dataset',
+            style={'description_width': 'initial'},
+            layout=Layout(display='flex',flex_flow='row',justify_content='space-between',width='80%')
             )
 
         @debounce(0.2)
-        def _observe_free_ERT(change):
-            self.metadata['free_ERT'] = self.widget_free_ERT.value
+        def _observe_description_ERT(change):
+            self.metadata['description_ERT'] = self.widget_description_ERT.value
             self._update_widget_export()
 
-        self.widget_free_ERT.observe(_observe_free_ERT)
-        return self.widget_free_ERT
+        self.widget_description_ERT.observe(_observe_description_ERT)
+        return self.widget_description_ERT
 
     def _widget_upload_ERT(self):
         """upload ERT file and parse metadata
         """
         title = widgets.HTML(
-        '<h2>upload ERT file<h2/>')
+        '''<h3>REDA importer<h3/>
+        <hr style="height:1px;border-width:0;color:black;background-color:gray">
+        ''')
         text = widgets.HTML('''
-        Infer all the ERT metadata from the ERT uploaded data
+        Infer all the ERT metadata from the ERT dataset uploaded. Please refer to the <a href="https://github.com/geophysics-ubonn/reda"> REDA online doc</a>
         ''')
         vbox = widgets.VBox([title, text])
         return vbox
@@ -758,6 +749,7 @@ class geo_metadata(object):
         title = widgets.HTML('''
             <h3> EM metadata </h3>
             <hr style="height:1px;border-width:0;color:black;background-color:gray">
+            <b> Minimum required metadata. </b>
             Please refer to the <a href="https://agrogeophy.github.io/catalog/schema_documentation.html#table-em-metadata">online EM metadata documentation </a>
              ''')
         vbox = widgets.VBox([title])
@@ -818,30 +810,64 @@ class geo_metadata(object):
         coil_spacing.observe(_observe_coil_spacing)
         return coil_spacing
 
-    def _widget_free_EM(self):
-        self.widget_free_EM = widgets.Text(
-            description='Free EM metadata to add',
+    def _widget_description_EM(self):
+        self.widget_description_EM = widgets.Text(
+            description='Short description of the dataset',
             style={'description_width': 'initial'}
             )
 
         @debounce(0.2)
-        def _observe_free_EM(change):
-            self.metadata['free_EM'] = self.widget_free_EM.value
+        def _observe_description_EM(change):
+            self.metadata['description_EM'] = self.widget_description_EM.value
             self._update_widget_export()
 
-        self.widget_free_EM.observe(_observe_free_EM)
-        return self.widget_free_EM
+        self.widget_description_EM.observe(_observe_description_EM)
+        return self.widget_description_EM
 
     def _widget_upload_EM(self):
-        """upload ERT file and parse metadata
+        """upload EM file and parse metadata
         """
         title = widgets.HTML(
-        '<h2>upload EM file<h2/>')
-        text = widgets.HTML('''
-        Infer all the EM metadata from the ERT uploaded data
+        '''<h3>Emagpy importer<h3/>
+        <hr style="height:1px;border-width:0;color:black;background-color:gray">
         ''')
+        text = widgets.HTML('''
+        Infer all the EM metadata from the EM uploaded. Please refer to the <a href="https://gitlab.com/hkex/emagpy"> Emagpy online doc</a>
+        ''')
+
         vbox = widgets.VBox([title, text])
         return vbox
+
+    def _widget_upload_EM_button(self):
+       """Import EM dataset """
+
+       self.EM_upload = widgets.FileUpload(
+               accept='.csv',  # Accepted file extension
+               multiple=False  # True to accept multiple files upload else False
+           )
+
+       vbox = widgets.VBox([self.EM_upload])
+
+
+       def on_upload_change(change):
+            print('Upload file')
+            for name, file_info in self.EM_upload.value.items():
+
+                self._add_to_Zip(name)
+                self._update_widget_log('EM file copied into zip')
+
+                k = Problem() # this create the main object
+                k.createSurvey(name) # this import the data
+                k.invert(forwardModel='CS') # specify the forward model (here the Cumulative Sensitivty of McNeil1980)
+                k.showResults() # display the section
+
+            # self._parse_json() # parse to metadata for export
+            # self._update_fields_values() # parse to widgets to replace initial valus
+
+       self.EM_upload.observe(on_upload_change, names='_counter')
+
+
+       return vbox
 
 
     #%% DATA QUALITY ASSESSEMENT metadata
@@ -1076,7 +1102,9 @@ class geo_metadata(object):
         """upload json file and parse values
         """
         title = widgets.HTML(
-        '<h2>upload json file<h2/>')
+            '''<h3>Upload json file<h3/>
+               <hr style="height:1px;border-width:0;color:black;background-color:gray">
+            ''')
         text = widgets.HTML('''
         Replace all the field by the uploaded json fields
         ''')
@@ -1128,8 +1156,7 @@ class geo_metadata(object):
                 self.metadata[i[1]] = self.data_uploaded[i[1]]
             else:
                 warning = 'metadata no matching:' + str(i[1])
-                self.warnings.append(warning) 
-                self._update_widget_log()
+                self._update_widget_log(warning)
 
 
     def _widget_download_buttons(self):
@@ -1191,22 +1218,84 @@ class geo_metadata(object):
         return hbox
 
 
+    def ulify(self,elements):
+        string = "<ul>\n"
+        string += "\n".join(["<li>" + str(s) + "</li>" for s in elements])
+        string += "\n</ul>"
+        return string
 
-    def _update_widget_log(self):
+    def _update_widget_log(self,warning):
         """Report errors
         """
-        def ulify(elements):
-            string = "<ul>\n"
-            string += "\n".join(["<li>" + str(s) + "</li>" for s in elements])
-            string += "\n</ul>"
-            return string
+        now = datetime.now()
+        dt_string = now.strftime("%d/%m/%Y %H:%M:%S") 
+        self.warnings.append(dt_string + ': ' + warning) 
 
-        self.string = ulify(self.warnings)
-
-        # warnings_raw = json.dumps(self.warnings)
-        # self.log.value = "<pre>{}</pre>".format(html.escape(warnings_raw))
-        #self.log.value  = ' '.join(self.warnings)
+        self.string = self.ulify(self.warnings)
         self.log.value  = self.string
+
+
+    def _widget_about(self):
+        """References
+        """
+        header_version = widgets.HTML(
+            '''<h3>Version<h3/>
+               <hr style="height:1px;border-width:0;color:black;background-color:gray">
+            ''')
+        with open('setup.py') as f:
+            for line in f:
+                if line.startswith('version'):
+                    _, _, version = line.replace("'", '').split()
+                    break
+            f.close()
+
+
+        version_str = "\n".join(['Geometadp version: ' + "<b>" + str(version) + "</b>"])
+        current_version = widgets.HTML(version_str)
+
+        vbox_version = widgets.VBox([header_version,current_version])
+
+        header_refs= widgets.HTML(
+            '''<h3>References<h3/>
+               <hr style="height:1px;border-width:0;color:black;background-color:gray">
+            ''')
+        refs = ['Richards, J. D. (1997). Preservation and re-use of digital data: the role of the Archaeology Data Service. Antiquity, 71(274), 1057.',
+                'Adrian, B. M. (2014, December). National geological and geophysical data preservation program: successes and lessons learned. In AGU Fall Meeting Abstracts (Vol. 2014, pp. IN23A-3723).']
+        refs_str= widgets.HTML(self.ulify(refs))
+        vbox_refs = widgets.VBox([header_refs,refs_str])
+
+
+        header_cite = widgets.HTML(
+            '''<h3>Cite us<h3/>
+               <hr style="height:1px;border-width:0;color:black;background-color:gray">
+            ''')
+        vbox_cite = widgets.VBox([header_cite])
+
+
+
+        with open('LICENSE') as f:
+            for line in f:
+                license_str = f.read()
+            f.close()
+
+        header_license = widgets.HTML(
+            '''<h3>License<h3/>
+               <hr style="height:1px;border-width:0;color:black;background-color:gray">
+            ''')
+        license_str = widgets.HTML(license_str)
+        vbox_license = widgets.VBox([header_license,license_str])
+
+
+        header_interpolability = widgets.HTML(
+            '''<h3>Interpolability<h3/>
+               <hr style="height:1px;border-width:0;color:black;background-color:gray">
+            ''')
+        vbox_interpolability = widgets.VBox([header_interpolability])
+
+        vbox = widgets.VBox([vbox_version, vbox_refs, vbox_cite, vbox_license, vbox_interpolability])
+
+        return vbox
+
 
     def manage(self):
 
@@ -1228,6 +1317,7 @@ class geo_metadata(object):
         self.vbox_export = widgets.VBox(self.widget_export)
         self.vbox_logger = widgets.VBox(self.widget_logger)
         #self.vbox_data_structure = widgets.VBox(self.widget_data_structure)
+        self.vbox_about = widgets.VBox(self.widget_about)
 
 
         accordion_tab0 = widgets.Accordion(children=[self.vbox, self.vbox_survey, self.vbox_survey_map])
@@ -1236,19 +1326,16 @@ class geo_metadata(object):
         accordion_tab0.set_title(2, 'Geolocalisation')
 
         accordion_tab_ERT = widgets.Accordion(children=[self.vbox_upload_ERT_data])
-        accordion_tab_ERT.set_title(0, 'Upload')
+        accordion_tab_ERT.set_title(0, 'upload ERT file')
 
         accordion_tab_EM = widgets.Accordion(children=[self.vbox_upload_EM_data])
-        accordion_tab_EM.set_title(0, 'Upload')
+        accordion_tab_EM.set_title(0, 'upload EM file')
 
         vbox_tab0 = widgets.VBox([self.vbox_guidelines,accordion_tab0])
         vbox_tab_ERT = widgets.VBox([self.vbox_ERT,accordion_tab_ERT])        
         vbox_tab_EM = widgets.VBox([self.vbox_EM,accordion_tab_EM])
                           
-        #self.vbox_import = widgets.VBox(self.upload_widget)
-        # display(self.vbox)
-        # self.metadata['test1'] = 'balbaba'
-        # self.metadata['test2'] = 832       
+
         
         
         self._update_widget_export()
@@ -1262,7 +1349,8 @@ class geo_metadata(object):
                                        #self.vbox_data_structure,
                                        self.vbox_upload,
                                        self.vbox_export,
-                                       self.vbox_logger
+                                       self.vbox_logger,
+                                       self.vbox_about
                                       ])
         tab.set_title(0, 'Home')
         tab.set_title(1, 'ERT')
@@ -1273,5 +1361,6 @@ class geo_metadata(object):
         tab.set_title(6, 'Export')
         #tab.set_title(5, 'Data structure')
         tab.set_title(7, 'Logger')
+        tab.set_title(8, 'About')
 
         display(tab)
