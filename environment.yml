@@ -3,7 +3,6 @@ channels:
 - defaults
 dependencies:
 - pip
-- itkwidgets
 - ipywidgets
 - pip:
   - -r file:requirements.txt
