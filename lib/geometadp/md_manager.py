@@ -1436,7 +1436,7 @@ class geo_metadata(object):
 
         self.vbox_guidelines = widgets.VBox(self.widget_guidelines)
 
-        self.vbox = widgets.VBox(self.widget_objects)
+        self.vbox = widgets.VBox(self.widget_ownership)
         self.vbox_survey = widgets.VBox(self.widget_survey)
         self.vbox_survey_map = widgets.VBox(self.widget_survey_map)
 
