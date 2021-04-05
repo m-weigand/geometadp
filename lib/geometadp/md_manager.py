@@ -19,6 +19,10 @@ import zipfile
 from emagpy import Problem # import the main Problem class from emagpy
 from datetime import date, datetime
 
+from lib.geometadp.about import _widget_about
+#from lib.geometadp.EM import *
+
+#from about import _widget_about
 #from file_import_qt5 as fileImportQt5
 
 """
@@ -85,21 +89,23 @@ class geo_metadata(object):
 
         # stores the various widget objects. They are shown in this order
         self.widget_guidelines = []
-        self.widget_objects = []
+        self.widget_ownership = []
         self.widget_survey = []
         self.widget_survey_map = []
 
         self.widget_ERT = []
         self.widget_ERT_upload = []
+        self.widget_ERT_files = []
 
         self.widget_EM = []
         self.widget_EM_upload = []
+        self.widget_EM_files = []
 
         self.widget_quality = []
         self.widget_sampling = []
         self.widget_data_structure = []
 
-        self.widget_upload = []
+        self.widget_import = []
         self.widget_export = []
         self.widget_logger = []
 
@@ -110,11 +116,15 @@ class geo_metadata(object):
     def _prepare_widgets(self):
         self.widget_guidelines.append(self._widget_header())
       
+
+        # DOI
+
         #%% REPORT: title/authors
-        self.widget_objects.append(self._widget_report_title())
-        self.widget_objects.append(self._widget_report_authors())
-        self.widget_objects.append(self._widget_owner())
-        self.widget_objects.append(self._widget_email())
+        self.widget_ownership.append(self._widget_report_title())
+        self.widget_ownership.append(self._widget_report_authors())
+        self.widget_ownership.append(self._widget_owner())
+        self.widget_ownership.append(self._widget_email())
+        self.widget_ownership.append(self._widget_dataset_DOI())
 
 
         # SURVEY: method/type/instrument
@@ -123,13 +133,14 @@ class geo_metadata(object):
 
         self.widget_survey.append(self._widget_method())
         self.widget_survey.append(self._widget_measurement_type())
-        self.widget_survey.append(self._widget_dataset_DOI())
-        self.widget_survey.append(self._widget_variables())
+        #self.widget_survey.append(self._widget_variables())
         # self.widget_survey.append(self._widget_location_bounds()) # deprecated (use leaflet instead)
 
         # SURVEY: map
         self.widget_survey_map.append(self._widget_leaflet())
         
+
+        # Reasons for choice of survey technique  
 
 
         #%% ERT metadata: Date_measure/ Time_measure/ Elec_conf/ Elec_spacing
@@ -142,7 +153,8 @@ class geo_metadata(object):
         self.widget_ERT.append(self._widget_elec_spacing())
         self.widget_ERT.append(self._widget_description_ERT())
         self.widget_ERT.append(self._widget_ERT_more())
-        self.widget_ERT_upload.append(self._widget_upload_ERT())  # not yet implemented
+        self.widget_ERT_upload.append(self._widget_upload_ERT()) 
+        self.widget_ERT_files.append(self._widgets_ERT_add_file())
 
 
         #%% EM metadata
@@ -151,8 +163,8 @@ class geo_metadata(object):
         self.widget_EM.append(self._widget_coil_height())
         self.widget_EM.append(self._widget_coil_spacing())
         self.widget_EM.append(self._widget_description_EM())
-        self.widget_EM_upload.append(self._widget_upload_EM())  # not yet implemented
-        self.widget_EM_upload.append(self._widget_upload_EM_button())  # not yet implemented
+        self.widget_EM_upload.append(self._widget_upload_EM_button())  # upload EM data from emagpy
+        self.widget_EM_files.append(self._widgets_EM_add_file())
 
 
         #%% DATA QUALITY ASSESSEMENT metadata
@@ -170,6 +182,11 @@ class geo_metadata(object):
 
         #%% DATA structure 
         self.widget_data_structure.append(self._widgets_dataset_structure_doc())
+        #self.widget_data_structure.append(self._widget_upload_img_button())
+        #self.widget_data_structure.append(self._widget_external_ressource_more(my_columns))
+        #self.widget_data_structure.append(self._widgets_dataset_structure())
+        #self.widget_data_structure.append(self._widgets_related_external_resources_doc())
+
 
         #%% ancillary DATA 
         # self.widget_ancillary.data.append(self._widgets_figures())
@@ -178,15 +195,15 @@ class geo_metadata(object):
         self.widget_export.append(self._widget_export())
         self.widget_export.append(self._widget_download_buttons())
 
-        #%% Export 
-        self.widget_upload.append(self._widget_upload_json())
-        self.widget_upload.append(self._widget_upload_button())
+        #%% Import 
+        self.widget_import.append(self._widget_upload_json())
+        self.widget_import.append(self._widget_upload_button())
 
         #%% Logger
         self.widget_logger.append(self._widget_log())
 
         #%% About
-        self.widget_about.append(self._widget_about())
+        self.widget_about.append(_widget_about())
 
     def _widget_header(self):
         """Show the header of the data mangement gui that explains the basic concepts
@@ -202,13 +219,26 @@ class geo_metadata(object):
         )
 
         title = widgets.HTML(
-            '<h2>Data Manager and Metadata Collector for CAGS - DEV version <h2/>')
+            '<h2>Data Manager and Metadata Collector for CAGS - DEV version </h2>')
         text = widgets.HTML('''
-            This gui is designed to help with the initial preparation of one
-            geophysical dataset metadata. In order to make the dataset FAIR, simple metadata descriptors must be filled. 
-            if you require additionnal metadata, please let us know by opening an issue <a href="https://github.com/agrogeophy/geometadp" target="_blank">on github </a>
-            Note that this is a lightened version of the metadata manager as the full version must be run locally to interact with files. See github for <a href="https://github.com/agrogeophy/geometadp" target="_blank">more informations.</a> 
-            Metdata templates for generic survey to upload are available on the github page.
+            <h4> Introduction  </h4>
+            <p> This gui is designed to help with the initial preparation of one
+            geophysical dataset metadata. In order to make the dataset FAIR, simple metadata descriptors must be filled. </p>
+
+            <h4> Tip  </h4>
+            <p> Use the upload tab to import a pre-existing JSON file </p>
+
+            <h4> Recommandations  </h4>
+                <ol>
+                  <li>Fill out the maximum number of metadata fields </li>
+                  <li> Check if a metadata descriptor exist before create a new one</li>
+                </ol>
+
+            <h4> More on github  </h4>
+            <p> Metadata templates for generic survey to upload are available on the github page.
+            If you require additionnal metadata, please let us know by opening an issue <a href="https://github.com/agrogeophy/geometadp" target="_blank">on github </a>.
+            See github for <a href="https://github.com/agrogeophy/geometadp" target="_blank">more informations.</a>  </p>
+
             ''')
 
         vbox = widgets.VBox([logo, title, text])
@@ -334,7 +364,6 @@ class geo_metadata(object):
        vbox = widgets.VBox([self.xy_upload])
 
        def _on_upload_change(change):
-            print('Upload file')
 
             for name, file_info in self.xy_upload.value.items():
                 self._add_to_Zip(name)
@@ -541,6 +570,33 @@ class geo_metadata(object):
         method.observe(_observe_method)
         return method
 
+    def _widget_TimeLapse(self):
+        method = widgets.RadioButtons(
+            options=[
+                'Geoelectrical - ERT',
+                'Geoelectrical - TDIP',
+                'Geoelectrical - sEIT',
+                'Geoelectrical - SIP/EIS',
+                'GPR',
+                'EM',
+                'Seismic',
+            ],
+            default='Geoelectrical - ERT',
+            description='Method:',
+            disabled=False,
+            style={'description_width': 'initial'}
+        )
+
+        # set initial metadata
+        self.metadata['method'] = 'Geoelectrical - ERT'
+
+        def _observe_method(change):
+            self.metadata['method'] = method.value
+            self._update_widget_export()
+
+        method.observe(_observe_method)
+        return method
+
     def _widget_measurement_type(self):
         type_measurement = widgets.RadioButtons(
             options=['Laboratory Measurement', 'Field Measurement'],
@@ -627,7 +683,7 @@ class geo_metadata(object):
         
 
         elec_config.layout.display   = 'none'
-        if  self.metadata['method'] is 'Geoelectrical - ERT':
+        if  self.metadata['method'] == 'Geoelectrical - ERT':
             elec_config.layout.display   = 'block'
 
         # set initial metadata
@@ -741,7 +797,18 @@ class geo_metadata(object):
         vbox = widgets.VBox([title, text])
         return vbox
 
+    def _widgets_ERT_add_file(self):
 
+
+        columns = list(['raw file','processed file'])
+        vbox_ERT_add_files = self._widget_add_external_ressource(columns,'ERT')
+
+        vbox_files = self._widgets_related_external_resources_files_doc()
+        vbox_figs = self._widgets_related_external_resources_fig_doc()
+
+        vbox = widgets.VBox([vbox_files,vbox_ERT_add_files,vbox_figs])
+
+        return vbox
 
 
     #%% EM metadata
@@ -824,7 +891,7 @@ class geo_metadata(object):
         self.widget_description_EM.observe(_observe_description_EM)
         return self.widget_description_EM
 
-    def _widget_upload_EM(self):
+    def _widget_upload_EM_doc(self):
         """upload EM file and parse metadata
         """
         title = widgets.HTML(
@@ -841,12 +908,14 @@ class geo_metadata(object):
     def _widget_upload_EM_button(self):
        """Import EM dataset """
 
+       vbox_doc = self._widget_upload_EM_doc()
+
        self.EM_upload = widgets.FileUpload(
                accept='.csv',  # Accepted file extension
                multiple=False  # True to accept multiple files upload else False
            )
 
-       vbox = widgets.VBox([self.EM_upload])
+       vbox = widgets.VBox([vbox_doc,self.EM_upload])
 
 
        def on_upload_change(change):
@@ -855,6 +924,7 @@ class geo_metadata(object):
 
                 self._add_to_Zip(name)
                 self._update_widget_log('EM file copied into zip')
+                self.metadata['em_filename'] = name
 
                 k = Problem() # this create the main object
                 k.createSurvey(name) # this import the data
@@ -868,6 +938,19 @@ class geo_metadata(object):
 
 
        return vbox
+
+    def _widgets_EM_add_file(self):
+
+
+        columns = list(['raw file','processed file'])
+        vbox_EM_add_files = self._widget_add_external_ressource(columns,'EM')
+
+        vbox_files = self._widgets_related_external_resources_files_doc()
+        vbox_figs = self._widgets_related_external_resources_fig_doc()
+
+        vbox = widgets.VBox([vbox_files,vbox_EM_add_files,vbox_figs])
+
+        return vbox
 
 
     #%% DATA QUALITY ASSESSEMENT metadata
@@ -1006,8 +1089,119 @@ class geo_metadata(object):
             Please refer to the <a href="https://agrogeophy.github.io/datasets/data-management.html#workflow-for-preparing-dataset">online guidelines to structure a dataset </a>      
              ''')
         vbox = widgets.VBox([title])
+
         return vbox
 
+    def _widgets_related_external_resources_files_doc(self):
+        title = widgets.HTML('''
+            <h4> Files </h4>
+            <hr style="height:1px;border-width:0;color:black;background-color:gray">
+             ''')
+        vbox = widgets.VBox([title])
+        return vbox
+
+
+    def _widgets_related_external_resources_fig_doc(self):
+        title = widgets.HTML('''
+            <h4> Figures </h4>
+            <hr style="height:1px;border-width:0;color:black;background-color:gray">
+             ''')
+        vbox = widgets.VBox([title])
+        return vbox
+
+            # self._parse_json() # parse to metadata for export
+            # self._update_fields_values() # parse to widgets to replace initial valus
+
+
+    def _widget_add_external_ressource(self, my_columns, method_str):
+
+        # Data examples
+        # my_columns = list(['field picture', 'post processing figure', 'rawdata'])
+        df = pd.DataFrame(np.random.randint(0,100,size=(100, np.shape(my_columns)[0])), columns=my_columns)
+
+        # Our filter generator
+        def generate_filter(button):
+            # Check if exist before creating
+            new_widget = widgets.Text(description=select_definition.value) # Value from the user
+
+            new_upload = widgets.FileUpload(
+                   accept='.png',  # Accepted file extension
+                   multiple=True  # True to accept multiple files upload else False
+               )
+
+            vbox = widgets.HBox([new_upload])
+            # Append created filter
+            filters.children=tuple(list(filters.children) + [new_widget] + [new_upload])
+            choose_filter = widgets.HBox([select_definition, button, filters])
+
+            @debounce(0.2)
+            def _observe_filter(change):
+                self.metadata[select_definition.value] = new_widget.value
+                self._update_widget_export()
+
+            # self._parse_json() # parse to metadata for export
+            # self._update_fields_values() # parse to widgets to replace initial valus
+
+            new_widget.observe(_observe_filter)
+
+            def on_upload_change(change):
+                for name, file_info in new_upload.value.items():
+                    self._add_to_Zip(name,target_dir=method_str,level_dir=select_definition.value)
+                    self._update_widget_log('png file copied into zip')
+                    self.metadata['external_ressource ' + new_widget.value] = name
+                    self._update_widget_export()
+
+                # self._parse_json() # parse to metadata for export
+                # self._update_fields_values() # parse to widgets to replace initial valus
+
+            new_upload.observe(on_upload_change, names='_counter')
+
+
+
+        # Define Dropdown 
+        select_definition = widgets.Dropdown(options=my_columns, layout=Layout(width='10%'))
+
+        button = widgets.Button(description="Add")  
+
+        # Define button and event
+        button.on_click(generate_filter)
+
+        # Where we will put all our filters
+        filters = widgets.VBox()
+        # Put Dropdown and button together
+        add_filter = widgets.HBox([select_definition, button])
+        choose_filter = widgets.VBox([add_filter, filters])
+
+        return choose_filter
+
+
+    def _widget_upload_img_button(self):
+       """Import EM dataset """
+
+       self.img_upload = widgets.FileUpload(
+               accept='.png',  # Accepted file extension
+               multiple=True  # True to accept multiple files upload else False
+           )
+
+       vbox = widgets.VBox([self.img_upload])
+
+
+       def on_upload_change(change):
+            print('Upload png file')
+            for name, file_info in self.img_upload.value.items():
+
+                self._add_to_Zip(name)
+                self._update_widget_log('png file copied into zip')
+                self.metadata['em_external_ressource_img'] = name
+                self._update_widget_export()
+
+            # self._parse_json() # parse to metadata for export
+            # self._update_fields_values() # parse to widgets to replace initial valus
+
+       self.img_upload.observe(on_upload_change, names='_counter')
+
+
+       return vbox
 
     #def _widget_data_directory(self):
     #    data_directory = _widget_select_directory(
@@ -1145,7 +1339,7 @@ class geo_metadata(object):
         for i in enumerate(mylist):
             if hasattr(self, 'widget_' + str(i[1])):
                widget2fill = eval('self.widget_' + str(i[1]) )
-               widget2fill.value = 'maxi {}'.format(self.data_uploaded[i[1]])
+               widget2fill.value = '{}'.format(self.data_uploaded[i[1]])
 
 
 
@@ -1188,18 +1382,21 @@ class geo_metadata(object):
        return vbox
 
 
-    def _add_to_Zip(self,filename):
-        self.z = zipfile.ZipFile("test.zip", "w")
+    def _add_to_Zip(self,filename, target_dir, level_dir):
+        z = zipfile.ZipFile("test.zip", 'a')
+        path = target_dir+'\\'+ level_dir +'\\'+  filename
 
-        def zipdir(path, ziph):
-            for root, dirs, files in os.walk(path):
-                for file in files:
-                    ziph.write(os.path.join(root, file))
 
-        zipdir('./geom/', self.z)
-        self.z.printdir()
-        self.z.write(filename)
-        self.z.close()
+        def zipdir(path, filename, ziph):
+            #filePath = os.path.join(os.getcwd(), path)
+            ziph.write(filename,path)
+
+        zipdir(path, filename, z)
+        z.close()
+
+        #self.z.printdir()
+        #self.z.write(filename,target_dir)
+        #self.z.close()
 
     def _widget_log(self):
         """Report errors
@@ -1235,68 +1432,6 @@ class geo_metadata(object):
         self.log.value  = self.string
 
 
-    def _widget_about(self):
-        """References
-        """
-        header_version = widgets.HTML(
-            '''<h3>Version<h3/>
-               <hr style="height:1px;border-width:0;color:black;background-color:gray">
-            ''')
-        with open('setup.py') as f:
-            for line in f:
-                if line.startswith('version'):
-                    _, _, version = line.replace("'", '').split()
-                    break
-            f.close()
-
-
-        version_str = "\n".join(['Geometadp version: ' + "<b>" + str(version) + "</b>"])
-        current_version = widgets.HTML(version_str)
-
-        vbox_version = widgets.VBox([header_version,current_version])
-
-        header_refs= widgets.HTML(
-            '''<h3>References<h3/>
-               <hr style="height:1px;border-width:0;color:black;background-color:gray">
-            ''')
-        refs = ['Richards, J. D. (1997). Preservation and re-use of digital data: the role of the Archaeology Data Service. Antiquity, 71(274), 1057.',
-                'Adrian, B. M. (2014, December). National geological and geophysical data preservation program: successes and lessons learned. In AGU Fall Meeting Abstracts (Vol. 2014, pp. IN23A-3723).']
-        refs_str= widgets.HTML(self.ulify(refs))
-        vbox_refs = widgets.VBox([header_refs,refs_str])
-
-
-        header_cite = widgets.HTML(
-            '''<h3>Cite us<h3/>
-               <hr style="height:1px;border-width:0;color:black;background-color:gray">
-            ''')
-        vbox_cite = widgets.VBox([header_cite])
-
-
-
-        with open('LICENSE') as f:
-            for line in f:
-                license_str = f.read()
-            f.close()
-
-        header_license = widgets.HTML(
-            '''<h3>License<h3/>
-               <hr style="height:1px;border-width:0;color:black;background-color:gray">
-            ''')
-        license_str = widgets.HTML(license_str)
-        vbox_license = widgets.VBox([header_license,license_str])
-
-
-        header_interpolability = widgets.HTML(
-            '''<h3>Interpolability<h3/>
-               <hr style="height:1px;border-width:0;color:black;background-color:gray">
-            ''')
-        vbox_interpolability = widgets.VBox([header_interpolability])
-
-        vbox = widgets.VBox([vbox_version, vbox_refs, vbox_cite, vbox_license, vbox_interpolability])
-
-        return vbox
-
-
     def manage(self):
 
         self.vbox_guidelines = widgets.VBox(self.widget_guidelines)
@@ -1307,16 +1442,22 @@ class geo_metadata(object):
 
         self.vbox_ERT = widgets.VBox(self.widget_ERT)
         self.vbox_upload_ERT_data = widgets.VBox(self.widget_ERT_upload)
+        self.vbox_upload_ERT_files = widgets.VBox(self.widget_ERT_files)     
 
         self.vbox_EM = widgets.VBox(self.widget_EM)
         self.vbox_upload_EM_data = widgets.VBox(self.widget_EM_upload)
+        self.vbox_upload_EM_files = widgets.VBox(self.widget_EM_files)     
+
 
         self.vbox_quality = widgets.VBox(self.widget_quality)
         self.vbox_sampling = widgets.VBox(self.widget_sampling)
-        self.vbox_upload = widgets.VBox(self.widget_upload)
+        self.vbox_import = widgets.VBox(self.widget_import)
         self.vbox_export = widgets.VBox(self.widget_export)
         self.vbox_logger = widgets.VBox(self.widget_logger)
         #self.vbox_data_structure = widgets.VBox(self.widget_data_structure)
+
+        self.vbox_data_structure = widgets.VBox(self.widget_data_structure)
+
         self.vbox_about = widgets.VBox(self.widget_about)
 
 
@@ -1325,11 +1466,15 @@ class geo_metadata(object):
         accordion_tab0.set_title(1, 'General Survey description')
         accordion_tab0.set_title(2, 'Geolocalisation')
 
-        accordion_tab_ERT = widgets.Accordion(children=[self.vbox_upload_ERT_data])
-        accordion_tab_ERT.set_title(0, 'upload ERT file')
+        accordion_tab_ERT = widgets.Accordion(children=[self.vbox_upload_ERT_data,
+                                                       self.vbox_upload_ERT_files])
+        accordion_tab_ERT.set_title(0, 'Upload ERT file')
+        accordion_tab_ERT.set_title(1, 'Related data ressources')
 
-        accordion_tab_EM = widgets.Accordion(children=[self.vbox_upload_EM_data])
-        accordion_tab_EM.set_title(0, 'upload EM file')
+        accordion_tab_EM = widgets.Accordion(children=[self.vbox_upload_EM_data,
+                                                       self.vbox_upload_EM_files])
+        accordion_tab_EM.set_title(0, 'Upload EM file')
+        accordion_tab_EM.set_title(1, 'Related data ressources')
 
         vbox_tab0 = widgets.VBox([self.vbox_guidelines,accordion_tab0])
         vbox_tab_ERT = widgets.VBox([self.vbox_ERT,accordion_tab_ERT])        
@@ -1342,25 +1487,25 @@ class geo_metadata(object):
 
 
         tab  = widgets.Tab(children = [vbox_tab0, 
+                                       self.vbox_import,
                                        vbox_tab_ERT,
                                        vbox_tab_EM,                                       
                                        self.vbox_quality,
-                                       self.vbox_sampling,
+                                       #self.vbox_sampling,
                                        #self.vbox_data_structure,
-                                       self.vbox_upload,
                                        self.vbox_export,
                                        self.vbox_logger,
                                        self.vbox_about
                                       ])
         tab.set_title(0, 'Home')
-        tab.set_title(1, 'ERT')
-        tab.set_title(2, 'EM')
-        tab.set_title(3, 'Quality')
-        tab.set_title(4, 'Sampling')
-        tab.set_title(5, 'Upload')
-        tab.set_title(6, 'Export')
+        tab.set_title(1, 'Import')
+        tab.set_title(2, 'ERT')
+        tab.set_title(3, 'EM')
+        tab.set_title(4, 'Quality')
+        #tab.set_title(4, 'Sampling')
+        tab.set_title(5, 'Export')
         #tab.set_title(5, 'Data structure')
-        tab.set_title(7, 'Logger')
-        tab.set_title(8, 'About')
+        tab.set_title(6, 'Logger')
+        tab.set_title(7, 'About')
 
         display(tab)
