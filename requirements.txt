@@ -1,6 +1,7 @@
 ipyleaflet
 ipywidgets
 ipydatetime
+ipyfilechooser
 emagpy
 voila
 pandas
