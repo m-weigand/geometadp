@@ -13,7 +13,7 @@ def _widget_about():
     """References
     """
     header_version = widgets.HTML(
-        '''<h3>Version<h3/>
+        '''<h4>Version</h4>
            <hr style="height:1px;border-width:0;color:black;background-color:gray">
         ''')
     with open('setup.py') as f:
@@ -30,7 +30,7 @@ def _widget_about():
     vbox_version = widgets.VBox([header_version,current_version])
 
     header_refs= widgets.HTML(
-        '''<h3>References<h3/>
+        '''<h4>References</h4>
            <hr style="height:1px;border-width:0;color:black;background-color:gray">
         ''')
     refs = ['Richards, J. D. (1997). Preservation and re-use of digital data: the role of the Archaeology Data Service. Antiquity, 71(274), 1057.',
@@ -40,7 +40,7 @@ def _widget_about():
 
 
     header_cite = widgets.HTML(
-        '''<h3>Cite us<h3/>
+        '''<h4>Cite us</h4>
            <hr style="height:1px;border-width:0;color:black;background-color:gray">
         ''')
     vbox_cite = widgets.VBox([header_cite])
@@ -53,7 +53,7 @@ def _widget_about():
         f.close()
 
     header_license = widgets.HTML(
-        '''<h3>License<h3/>
+        '''<h4>License</h4>
            <hr style="height:1px;border-width:0;color:black;background-color:gray">
         ''')
     license_str = widgets.HTML(license_str)
@@ -61,11 +61,22 @@ def _widget_about():
 
 
     header_interpolability = widgets.HTML(
-        '''<h3>Interpolability<h3/>
+        '''<h4>Interpolability</h4>
            <hr style="height:1px;border-width:0;color:black;background-color:gray">
         ''')
     vbox_interpolability = widgets.VBox([header_interpolability])
 
-    vbox = widgets.VBox([vbox_version, vbox_refs, vbox_cite, vbox_license, vbox_interpolability])
+    header_dependencies = widgets.HTML(
+        '''<h4>Dependencies</h4>
+           <hr style="height:1px;border-width:0;color:black;background-color:gray">
+                <ul>
+                  <li> REDA: <a href="https://github.com/geophysics-ubonn/reda" target="_blank">more informations</a></li>
+                  <li> Emagpy: <a href="https://gitlab.com/hkex/emagpy" target="_blank">more informations</a> </li>
+                </ol>
+        ''')
+    vbox_dependencies = widgets.VBox([header_dependencies])
+
+
+    vbox = widgets.VBox([vbox_version, vbox_refs, vbox_cite, vbox_license, vbox_interpolability,vbox_dependencies])
 
     return vbox

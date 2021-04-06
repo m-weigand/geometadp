@@ -215,6 +215,8 @@ class geo_metadata(object):
         #%% Upload 
         self.widget_export.append(self._widget_export())
         self.widget_export.append(self._widget_download_buttons())
+        self.widget_export.append(self._display_Zip())
+
 
         #%% Import 
         self.widget_import.append(self._widget_upload_button())
@@ -283,6 +285,10 @@ class geo_metadata(object):
                   <li> Use it locally for a maximum flexibility</li>
                   <li> Keep track of your datasets structure/metadata during every stages: acquisition/processing/publication: 
                     Use the import/export tabs respectively to import a pre-existing JSON file and save your work </li>
+                    <ul>
+                      <li> a zip file containing the files structure </li>
+                      <li> a Json formatted file in which metadata are saved</li>
+                    </ul>                
                 </ol>
 
             <h4> Recommandations </h4>
@@ -416,36 +422,32 @@ class geo_metadata(object):
     def _widget_upload_XY_button(self):
        """Import GeoJSON file"""
 
-       self.xy_upload = widgets.FileUpload(
-               description = 'xy_coord.csv',
-               accept='.csv',  # Accepted file extension
-               multiple=False,  # True to accept multiple files upload else False
-               style=style,
-               layout=layout)
+       self.xy_upload = FileChooser(use_dir_icons=True)
+       self.xy_upload.filter_pattern = '*.csv'
+       self.xy_upload.title = '<b>xy_coords</b>'
 
        vbox = widgets.VBox([self.xy_upload])
 
-       def _on_upload_change(change):
+       def _on_upload_xy_change():
+            #for name, file_info in self.xy_upload.value.items():
+            name = self.xy_upload.selected
+            self._add_to_Zip(name, target_dir=self.metadata['method'], level_dir='spatial')
+            self._update_widget_log('xy_file copied into zip')
 
-            for name, file_info in self.xy_upload.value.items():
-                self._add_to_Zip(name, target_dir=self.metadata['method'] , level_dir='spatial')
-                self._update_widget_log('xy_file copied into zip')
+            with open(name, newline='') as csvfile:
+                self.xy_data = pd.read_csv(csvfile,sep=';') 
 
-                with open(name, newline='') as csvfile:
-                    self.xy_data = pd.read_csv(csvfile,sep=';') 
+            poly_line = Polyline(locations=self.xy_data.values.tolist(), color="red" , fill=False)
+            self.m_top.add_layer(poly_line)
 
-                poly_line = Polyline(locations=self.xy_data.values.tolist(), color="red" , fill=False)
-                self.m_top.add_layer(poly_line)
+            #for name, file_info in self.xy_upload.value.items():
+            name = self.xy_upload.selected
+            self.metadata['xy_coords_file'] = name
+            self._update_widget_export()
 
-       @debounce(0.2)
-       def _observe_xy_coords(change):
-            for name, file_info in self.xy_upload.value.items():
-                self.metadata['xy_coords_file'] = name
-                self._update_widget_export()
-
-       self.xy_upload.observe(_on_upload_change, names='_counter') # plot into leaflet
-       self.xy_upload.observe(_observe_xy_coords) # add to metadata export
+       # self.xy_upload.register_callback(_observe_xy_coords) # add to metadata export
        # self.self.m_top.observe(_observe_geojson) # add to metadata export
+       self.xy_upload.register_callback(_on_upload_xy_change) # plot into leaflet
 
        return vbox
 
@@ -454,38 +456,41 @@ class geo_metadata(object):
     def _widget_upload_GeoJSON_button(self):
        """Import GeoJSON file"""
 
-       self.geojson_upload = widgets.FileUpload(
-               description = 'geo.json',
-               accept='.json',  # Accepted file extension
-               multiple=False,  # True to accept multiple files upload else False
-               style=style,
-               layout=layout)
+       #self.geojson_upload = widgets.FileUpload(
+       #        description = 'geo.json',
+       #        accept='.json',  # Accepted file extension
+       #        multiple=False,  # True to accept multiple files upload else False
+       #        style=style,
+       #        layout=layout)
+       self.geojson_upload = FileChooser(use_dir_icons=True)
+       self.geojson_upload.title = '<b>GeoJSON</b>'
 
+       print(self.geojson_upload.selected)
        vbox = widgets.VBox([self.geojson_upload])
 
-       def _on_upload_change(change):
-            for name, file_info in self.geojson_upload.value.items():
-                self._add_to_Zip(name, target_dir=self.metadata['method'] , level_dir='spatial')
-                self._update_widget_log('geojson_file copied into zip')
-                with open(name, 'r') as f:
-                    self.geojson_data = json.load(f)
-                self.geo_json = GeoJSON( data=self.geojson_data,
-                                    style={'opacity': 1, 'dashArray': '9', 'fillOpacity': 0.1, 'weight': 1},
-                                    hover_style={'color': 'white', 'dashArray': '0', 'fillOpacity': 0.5},
-                                )
-                self.m_top.add_layer(self.geo_json)
+       def _on_upload_change():
+
+            name = self.geojson_upload.selected
+            #for name, file_info in self.geojson_upload.value.items():
+            self._add_to_Zip(name, target_dir=self.metadata['method'] , level_dir='spatial')
+            self._update_widget_log('geojson_file copied into zip')
+            with open(name, 'r') as f:
+                self.geojson_data = json.load(f)
+            self.geo_json = GeoJSON( data=self.geojson_data,
+                                style={'opacity': 1, 'dashArray': '9', 'fillOpacity': 0.1, 'weight': 1},
+                                hover_style={'color': 'white', 'dashArray': '0', 'fillOpacity': 0.5},
+                            )
+            self.m_top.add_layer(self.geo_json)
                 
-
-       @debounce(0.2)
-       def _observe_geojson(change):
+            name = self.geojson_upload.selected
             # print('print to metadata')
-            for name, file_info in self.geojson_upload.value.items():
+            #for name, file_info in self.geojson_upload.value.items():
                 # print(name)
-                self.metadata['geojson_file'] = name
-                self._update_widget_export()
+            self.metadata['geojson_file'] = name
+            self._update_widget_export()
 
-       self.geojson_upload.observe(_on_upload_change, names='_counter') # plot into leaflet
-       self.geojson_upload.observe(_observe_geojson) # add to metadata export
+
+       self.geojson_upload.register_callback(_on_upload_change) # plot into leaflet
        # self.self.m_top.observe(_observe_geojson) # add to metadata export
 
        return vbox
@@ -914,14 +919,13 @@ class geo_metadata(object):
        self.ERT_upload  = FileChooser(use_dir_icons=True)
 
        vbox = widgets.VBox([vbox_doc,self.ERT_upload])
-       print(self.ERT_upload.selected_path)
 
 
        def on_upload_change(change):
             #for name in self.ERT_upload.selected:
             name = self.ERT_upload.selected
-            print(name)
-            #self._add_to_Zip(name, target_dir=  , level_dir=)
+
+            self._add_to_Zip(self.ERT_upload.selected_filename, target_dir='', level_dir='')
             self._update_widget_log('ERT file imported with REDA')
             self.metadata['ERT_filename_metadata'] = name
             ert = reda.ERT()
@@ -1115,12 +1119,14 @@ class geo_metadata(object):
 
        vbox_doc = self._widget_upload_EM_doc()
 
-       self.EM_upload = widgets.FileUpload(
-               accept='.csv',  # Accepted file extension
-               multiple=False  # True to accept multiple files upload else False
-           )
+       #self.EM_upload = widgets.FileUpload(
+       #        accept='.csv',  # Accepted file extension
+       #        multiple=False  # True to accept multiple files upload else False
+       #   )
 
-       #self.EM_upload = FileChooser(
+       self.EM_upload = FileChooser(use_dir_icons=True)
+       self.EM_upload.filter_pattern = '*.csv'
+       self.EM_upload.title = '<b>EM_upload</b>'
        #        accept='.csv',  # Accepted file extension
        #        multiple=False  # True to accept multiple files upload else False
        #    )
@@ -1131,28 +1137,29 @@ class geo_metadata(object):
 
 
        def on_upload_change(change):
-            for name, file_info in self.EM_upload.value.items():
+            #for name, file_info in self.EM_upload.value.items():
+            name = self.EM_upload.selected
+            self._add_to_Zip(name, target_dir= self.metadata['method'], level_dir='Emagpy_import')
+            self._update_widget_log('EM file imported for automatic metadata extraction')
+            self.metadata['em_filename_metadata'] = name
 
-                #self._add_to_Zip(name, target_dir=  , level_dir=)
-                self._update_widget_log('EM file imported for automatic metadata extraction')
-                self.metadata['em_filename_metadata'] = name
+            k = Problem() # this create the main object
+            k.createSurvey(name) # this import the data
+            k.invert(forwardModel='CS') # specify the forward model (here the Cumulative Sensitivty of McNeil1980)
+            k.showResults() # display the section
 
-                k = Problem() # this create the main object
-                k.createSurvey(name) # this import the data
-                k.invert(forwardModel='CS') # specify the forward model (here the Cumulative Sensitivty of McNeil1980)
-                k.showResults() # display the section
-
-                k.coils
-                k.freqs
-                k.hx
-                k.cspacing
-                self.metadata['coil_spacing'] =   ';'.join(map(str, k.cspacing))
+            k.coils
+            k.freqs
+            k.hx
+            k.cspacing
+            self.metadata['coil_spacing'] =   ';'.join(map(str, k.cspacing))
 
             self._update_widget_export()
             #self._parse_json() # parse to metadata for export
             self._update_fields_values(['coil_spacing']) # parse to widgets to replace initial valus
 
-       self.EM_upload.observe(on_upload_change, names='_counter')
+       #self.EM_upload.observe(on_upload_change, names='_counter')
+       self.EM_upload.register_callback(on_upload_change)
 
 
        return vbox
@@ -1402,26 +1409,30 @@ class geo_metadata(object):
        """Import EM dataset """
 
 
-       self.fig_upload = widgets.FileUpload(
-               accept='',  # Accepted file extension
-               multiple=True  # True to accept multiple files upload else False
-           )
+       #self.fig_upload = widgets.FileUpload(
+       #        accept='',  # Accepted file extension
+       #        multiple=True  # True to accept multiple files upload else False
+       #    )
+       self.fig_upload = FileChooser(use_dir_icons=True)
+       self.fig_upload.filter_pattern = '*.png'
+       self.fig_upload.title = '<b>Upload figs</b>'
 
        vbox = widgets.VBox([self.fig_upload])
 
 
-       def on_upload_change(change):
-
-            for name, file_info in self.fig_upload.value.items():
-                self._add_to_Zip(name,target_dir=method_str,level_dir='figures')
-                self._update_widget_log(name + 'file copied into: ' + method_str + '/' + 'figures zip folder')
-                self.metadata['external_ressource_' + method_str + '_fig'] = name
-                self._update_widget_export()
+       def on_upload_change():
+            name =  self.fig_upload.selected
+            #for name, file_info in self.fig_upload.value.items():
+            self._add_to_Zip(name,target_dir=self.metadata['method'],level_dir='figures')
+            self._update_widget_log(name + 'file copied into: ' + method_str + '/' + 'figures zip folder')
+            self.metadata['external_ressource_' + method_str + '_fig'] = name
+            self._update_widget_export()
 
             # self._parse_json() # parse to metadata for export
             # self._update_fields_values() # parse to widgets to replace initial valus
 
-       self.fig_upload.observe(on_upload_change, names='_counter')
+       #self.fig_upload.observe(on_upload_change, names='_counter')
+       self.fig_upload.register_callback(on_upload_change)
 
 
        return vbox
@@ -1444,26 +1455,30 @@ class geo_metadata(object):
     def _widget_upload_codes_button(self,method_str):
        """Import EM dataset """
 
-       self.codes_upload = widgets.FileUpload(
-               accept='',  # Accepted file extension
-               multiple=True  # True to accept multiple files upload else False
-           )
+       self.codes_upload = FileChooser(use_dir_icons=True)
+
+       #self.codes_upload = widgets.FileUpload(
+       #        accept='',  # Accepted file extension
+       #        multiple=True  # True to accept multiple files upload else False
+       #    )
 
        vbox = widgets.VBox([self.codes_upload])
 
 
        def on_upload_change(change):
 
-            for name, file_info in self.codes_upload.value.items():
-                self._add_to_Zip(name,target_dir=method_str,level_dir='scripts')
-                self._update_widget_log(name + 'file copied into: ' + method_str + '/' + 'scripts zip folder')
-                self.metadata['external_ressource_' + method_str + '_codes'] = name
-                self._update_widget_export()
+            #for name, file_info in self.codes_upload.value.items():
+            name = self.codes_upload.selected
+            self._add_to_Zip(name,target_dir=self.metadata['method'],level_dir='scripts')
+            self._update_widget_log(name + 'file copied into: ' + method_str + '/' + 'scripts zip folder')
+            self.metadata['external_ressource_' + method_str + '_codes'] = name
+            self._update_widget_export()
 
             # self._parse_json() # parse to metadata for export
             # self._update_fields_values() # parse to widgets to replace initial valus
 
-       self.codes_upload.observe(on_upload_change, names='_counter')
+       #self.codes_upload.register_callback(on_upload_change, names='_counter')
+       self.codes_upload.register_callback(on_upload_change)
 
 
        return vbox
@@ -1655,11 +1670,15 @@ class geo_metadata(object):
 
         vbox = widgets.VBox([self.download])
 
+        with open('json_backup.txt', 'w') as outfile:
+                json.dump(self.metadata, outfile)
+
+        self._add_to_Zip('json_backup.txt','','')
 
         def on_download_change(change): # read an display
-             with open('json2export_tmp.txt', 'w') as outfile:
+             with open('json_backup.txt', 'w') as outfile:
                 json.dump(self.metadata, outfile)
-             link2file = FileLink(r'json2export_tmp.txt')
+             link2file = FileLink(r'json_backup.txt')
              linkwidget = widgets.HTML(
                         value="<a href={code}>link2file to click</a>".format(code=link2file),
                         description='Some HTML',
@@ -1674,15 +1693,45 @@ class geo_metadata(object):
 
     def _add_to_Zip(self,filename, target_dir, level_dir):
         z = zipfile.ZipFile("project.zip", 'a')
-        path = target_dir+'\\'+ level_dir +'\\'+  filename
+
+        
+        path = target_dir + '\\' + level_dir + '\\' +  os.path.basename(filename)
 
 
         def zipdir(path, filename, ziph):
             #filePath = os.path.join(os.getcwd(), path)
             ziph.write(filename,path)
-
         zipdir(path, filename, z)
         z.close()
+
+
+    def _display_Zip(self):
+
+        try:
+            z = zipfile.ZipFile("project.zip", 'r')
+            header= widgets.HTML('''
+                    <h2>File Structure<h2/>
+                    ''')
+
+            struct_str = self.ulify(z.namelist())
+
+
+            zipstruct = widgets.HTML(
+                        value=struct_str,
+                        description='Some HTML')
+            vbox_zip = widgets.VBox([header, zipstruct])
+
+        # Do something with the file
+        except IOError:
+            print("File not accessible")
+        finally:
+            z.close()
+
+        z = zipfile.ZipFile("project.zip", 'r')
+
+        return vbox_zip
+
+
 
         #self.z.printdir()
         #self.z.write(filename,target_dir)
@@ -1710,6 +1759,16 @@ class geo_metadata(object):
         string += "\n".join(["<li>" + str(s) + "</li>" for s in elements])
         string += "\n</ul>"
         return string
+
+    def list_files(startpath):
+        for root, dirs, files in os.walk(startpath):
+            level = root.replace(startpath, '').count(os.sep)
+            indent = ' ' * 4 * (level)
+            print('{}{}/'.format(indent, os.path.basename(root)))
+            subindent = ' ' * 4 * (level + 1)
+            for f in files:
+                print('{}{}'.format(subindent, f))
+
 
     def _update_widget_log(self,warning):
         """Report errors
@@ -1790,6 +1849,8 @@ class geo_metadata(object):
                                        self.vbox_logger,
                                        self.vbox_about
                                       ])
+
+
         tab.set_title(0, 'Home')
         tab.set_title(1, 'Import')
         tab.set_title(2, 'ERT')

@@ -6,5 +6,6 @@ emagpy
 voila
 pandas
 dicttoxml
+reda
 
 
