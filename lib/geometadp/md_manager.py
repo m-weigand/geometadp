@@ -12,11 +12,16 @@ import html
 from ipyleaflet import Map, basemaps, basemap_to_tiles, GeoJSON, Marker, Polyline
 from ipywidgets import Layout, HBox, VBox, FloatText
 from ipywidgets import *
+from ipyfilechooser import FileChooser
+
 import pandas as pd
 import numpy as np
 from IPython.display import display, clear_output
 import zipfile
+
 from emagpy import Problem # import the main Problem class from emagpy
+import reda
+
 from datetime import date, datetime
 
 from lib.geometadp.about import _widget_about
@@ -43,7 +48,7 @@ import asyncio
 
 # some css
 style = {'description_width': '300px'}
-layout = {'width': '400px'}
+layout = {'width': 'auto'}
 
 # https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20Events.html#Debouncing
 from IPython.display import display_html
@@ -164,7 +169,8 @@ class geo_metadata(object):
         self.widget_ERT.append(self._widget_elec_spacing())
         self.widget_ERT.append(self._widget_description_ERT())
         self.widget_ERT.append(self._widget_ERT_more())
-        self.widget_ERT_upload.append(self._widget_upload_ERT()) 
+
+        self.widget_ERT_upload.append(self._widget_upload_ERT_button()) 
         self.widget_ERT_files.append(self._widgets_ERT_add_file())
 
 
@@ -325,8 +331,8 @@ class geo_metadata(object):
     def _widget_report_authors(self):
         self.widget_report_authors = widgets.Text(
             description='Reporting authors names',
-            style={'description_width': 'initial'},
-        )
+            style=style,
+            layout=layout)
 
         @debounce(0.2)
         def _observe_report_authors(change):
@@ -338,8 +344,9 @@ class geo_metadata(object):
 
     def _widget_owner(self):
         self.widget_owner = widgets.Text(
-            description='Owner:'
-        )
+            description='Owner:',
+            style=style,
+            layout=layout)
 
         @debounce(0.2)
         def _observe_owner(change):
@@ -351,8 +358,9 @@ class geo_metadata(object):
 
     def _widget_email(self):
         self.widget_email = widgets.Text(
-            description='Email:'
-        )
+            description='Email:',
+            style=style,
+            layout=layout)
 
         @debounce(0.2)
         def _observe_email(change):
@@ -365,8 +373,8 @@ class geo_metadata(object):
     def _widget_dataset_DOI(self):
         self.widget_dataset_DOI = widgets.Text(
             description='Dataset DOI:',
-            style={'description_width': 'initial'}
-            )
+            style=style,
+            layout=layout)
 
         @debounce(0.2)
         def _observe_dataset_DOI(change):
@@ -379,8 +387,9 @@ class geo_metadata(object):
     def _widget_variables(self):
         self.widget_variables = widgets.Text(
             description='Physical property investigated:',
-            style={'description_width': 'initial'}
-            )
+            style=style,
+            layout=layout)
+            
 
         @debounce(0.2)
         def _observe_variables(change):
@@ -410,8 +419,9 @@ class geo_metadata(object):
        self.xy_upload = widgets.FileUpload(
                description = 'xy_coord.csv',
                accept='.csv',  # Accepted file extension
-               multiple=False  # True to accept multiple files upload else False
-           )
+               multiple=False,  # True to accept multiple files upload else False
+               style=style,
+               layout=layout)
 
        vbox = widgets.VBox([self.xy_upload])
 
@@ -447,8 +457,9 @@ class geo_metadata(object):
        self.geojson_upload = widgets.FileUpload(
                description = 'geo.json',
                accept='.json',  # Accepted file extension
-               multiple=False  # True to accept multiple files upload else False
-           )
+               multiple=False,  # True to accept multiple files upload else False
+               style=style,
+               layout=layout)
 
        vbox = widgets.VBox([self.geojson_upload])
 
@@ -609,8 +620,9 @@ class geo_metadata(object):
             default='Geoelectrical - ERT',
             description='Method:',
             disabled=False,
-            style={'description_width': 'initial'}
-        )
+            style=style,
+            layout=layout)
+        
 
         # set initial metadata
         self.metadata['method'] = ''
@@ -688,8 +700,8 @@ class geo_metadata(object):
             default='Field',
             description='Measurement type:',
             disabled=False,
-            style={'description_width': 'initial'}
-        )
+            style=style,
+            layout=layout)
 
         # set initial metadata
         # self.metadata['measurement_type'] = 'Field'
@@ -704,7 +716,8 @@ class geo_metadata(object):
     def _widget_instrument(self):
         self.widget_instrument = widgets.Text(
             description='Instrument',
-        )
+            style=style,
+            layout=layout)
 
         @debounce(0.2)
         def _observe_instrument(change):
@@ -718,8 +731,9 @@ class geo_metadata(object):
     def _widget_datetime(self):
         self.widget_date = widgets.DatePicker(
             description='Datetime of measurement',
-            disabled=False
-        )
+            disabled=False,
+            style=style,
+            layout=layout)
 
         def _observe_dt(change):
             date = self.widget_date.value
@@ -764,8 +778,8 @@ class geo_metadata(object):
             default='1D',
             description='Electrode configuration:',
             disabled=False,
-            style={'description_width': 'initial'}
-        )
+            style=style,
+            layout=layout)
         
 
         self.widget_elec_config.layout.display   = 'none'
@@ -793,7 +807,9 @@ class geo_metadata(object):
         # Our filter generator
         def generate_filter(button):
             # Check if exist before creating
-            new_widget = widgets.Text(description=select_definition.value) # Value from the user
+            new_widget = widgets.Text(description=select_definition.value,
+            style=style,
+            layout=layout)
             # Append created filter
             filters.children=tuple(list(filters.children) + [new_widget])
             choose_filter = widgets.HBox([select_definition, button, filters])
@@ -809,7 +825,9 @@ class geo_metadata(object):
         # Define Dropdown 
         select_definition = widgets.Dropdown(options=my_columns, layout=Layout(width='10%'))
 
-        button = widgets.Button(description="Add")  
+        button = widgets.Button(description="Add",
+            style=style,
+            layout=layout)
         # Define button and event
         button.on_click(generate_filter)
 
@@ -828,8 +846,8 @@ class geo_metadata(object):
             default='WS',
             description='Electrode sequence:',
             disabled=False,
-            style={'description_width': 'initial'}
-        )
+            style=style,
+            layout=layout)
 
         # set initial metadata
         # self.metadata['elec_seq'] = 'WS'
@@ -844,8 +862,8 @@ class geo_metadata(object):
     def _widget_elec_spacing(self):
         self.widget_elec_spacing = widgets.Text(
             description='Electrode spacing:',
-            style={'description_width': 'initial'}
-        )
+            style=style,
+            layout=layout)
 
         @debounce(0.2)
         def _observe_widget_elec_spacing(change):
@@ -858,7 +876,7 @@ class geo_metadata(object):
     def _widget_description_ERT(self):
         self.widget_description_ERT = widgets.Textarea(
             description='Short description of the dataset',
-            style={'description_width': 'initial'},
+            style=style,
             layout=Layout(display='flex',flex_flow='row',justify_content='space-between',width='80%')
             )
 
@@ -870,11 +888,11 @@ class geo_metadata(object):
         self.widget_description_ERT.observe(_observe_description_ERT)
         return self.widget_description_ERT
 
-    def _widget_upload_ERT(self):
+    def _widget_upload_ERT_doc(self):
         """upload ERT file and parse metadata
         """
         title = widgets.HTML(
-        '''<h3>REDA importer<h3/>
+        '''<h5>REDA importer<h5/>
         <hr style="height:1px;border-width:0;color:black;background-color:gray">
         ''')
         text = widgets.HTML('''
@@ -882,6 +900,106 @@ class geo_metadata(object):
         ''')
         vbox = widgets.VBox([title, text])
         return vbox
+
+    def _widget_upload_ERT_button(self):
+       """Import EM dataset """
+
+       vbox_doc = self._widget_upload_ERT_doc()
+
+       #self.ERT_upload = widgets.FileUpload(
+       #        accept='.bin',  # Accepted file extension
+       #        multiple=False  # True to accept multiple files upload else False
+       #    )
+
+       self.ERT_upload  = FileChooser(use_dir_icons=True)
+
+       vbox = widgets.VBox([vbox_doc,self.ERT_upload])
+       print(self.ERT_upload.selected_path)
+
+
+       def on_upload_change(change):
+            #for name in self.ERT_upload.selected:
+            name = self.ERT_upload.selected
+            print(name)
+            #self._add_to_Zip(name, target_dir=  , level_dir=)
+            self._update_widget_log('ERT file imported with REDA')
+            self.metadata['ERT_filename_metadata'] = name
+            ert = reda.ERT()
+            ert.import_syscal_bin(name)
+
+            #ert.electrode_positions
+            #ert.has_multiple_timesteps
+            #ert.log_list
+            #ert.print_log()
+
+            vbox.children = (*vbox.children, self._print_log_REDA())
+            vbox.children = (*vbox.children, self._nb_of_ambn())
+            vbox.children = (*vbox.children, self._ERT_chargeability())
+
+
+            #self.metadata['print_log_REDA'] =   ert.print_log()
+            self.metadata['nb_abmn'] =   str(len(ert.data))
+            if ert.data['chargeability'][0] != 0:
+                self.metadata['chargeability'] =   True
+            else:
+                self.metadata['chargeability'] =   False
+
+            self._update_widget_export()
+            #self._parse_json() # parse to metadata for export
+            #self._update_fields_values(['print_log_REDA']) # parse to widgets to replace initial valus
+            self._update_fields_values(['nb_abmn']) # parse to widgets to replace initial valus
+            self._update_fields_values(['chargeability']) # parse to widgets to replace initial valus
+
+       self.ERT_upload.register_callback(on_upload_change)
+
+
+       return vbox
+
+    def _print_log_REDA(self):
+        self.widget_print_log_REDA = widgets.Text(
+            description='Import processing Log REDA',
+            style=style,
+            layout=layout)
+        def _observe_print_log_REDA(change):
+            self.metadata['print_log_REDA'] = self.widget_print_log_REDA.value
+            #self._update_widget_export()
+
+        self.widget_print_log_REDA.observe(_observe_print_log_REDA)
+
+        return self.widget_print_log_REDA
+
+
+    def _nb_of_ambn(self):
+        self.widget_nb_abmn = widgets.Text(
+            description='Nb of abmn',
+            style=style,
+            layout=layout)
+
+        def _observe_nb_of_abmn(change):
+            self.metadata['nb_abmn'] = self.widget_nb_abmn.value
+            #self._update_widget_export()
+
+        self.widget_nb_abmn.observe(_observe_nb_of_abmn)
+
+        return self.widget_nb_abmn
+
+    def _ERT_chargeability(self):
+
+        self.widget_ERT_chargeability = widgets.Select(
+                            value='False',
+                            description='Contains chargeability',
+                            disabled=False,
+                            options=['True','False'],
+                            style=style,
+                            layout=layout)
+
+        def _observe_ERT_chargeability(change):
+            self.metadata['ERT_chargeability'] = self.widget_ERT_chargeability.value
+            #self._update_widget_export()
+
+        self.widget_ERT_chargeability.observe(_observe_ERT_chargeability)
+
+        return self.widget_ERT_chargeability
 
     def _widgets_ERT_add_file(self):
 
@@ -918,8 +1036,8 @@ class geo_metadata(object):
             default='VCP',
             description='Coil orientation:',
             disabled=False,
-            style={'description_width': 'initial'}
-        )
+            style=style,
+            layout=layout)
 
         # set initial metadata
         # self.metadata['coil_spacing'] = 'VCP'
@@ -935,8 +1053,8 @@ class geo_metadata(object):
     def _widget_coil_height(self):
         self.widget_coil_height = widgets.Text(
             description='Height of the instrument above the ground [m]:',
-            style={'description_width': 'initial'}
-        )
+            style=style,
+            layout=layout)
 
         @debounce(0.2)
         def _observe_coil_height(change):
@@ -951,8 +1069,8 @@ class geo_metadata(object):
             options=['0.2', '1','3'],
             description='Coil spacing:',
             disabled=False,
-            style={'description_width': 'initial'}
-        )
+            style=style,
+            layout=layout)
 
         # set initial metadata
         # self.metadata['coil_spacing'] = 'VCP'
@@ -967,8 +1085,8 @@ class geo_metadata(object):
     def _widget_description_EM(self):
         self.widget_description_EM = widgets.Textarea(
             description='Short description of the dataset',
-            style={'description_width': 'initial'}
-            )
+            style=style,
+            layout=layout)
 
         @debounce(0.2)
         def _observe_description_EM(change):
@@ -982,7 +1100,7 @@ class geo_metadata(object):
         """upload EM file and parse metadata
         """
         title = widgets.HTML(
-        '''<h3>Emagpy importer<h3/>
+        '''<h5>Emagpy importer<h5/>
         <hr style="height:1px;border-width:0;color:black;background-color:gray">
         ''')
         text = widgets.HTML('''
@@ -1001,6 +1119,13 @@ class geo_metadata(object):
                accept='.csv',  # Accepted file extension
                multiple=False  # True to accept multiple files upload else False
            )
+
+       #self.EM_upload = FileChooser(
+       #        accept='.csv',  # Accepted file extension
+       #        multiple=False  # True to accept multiple files upload else False
+       #    )
+
+
 
        vbox = widgets.VBox([vbox_doc,self.EM_upload])
 
