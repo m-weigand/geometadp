@@ -46,6 +46,8 @@ style = {'description_width': '300px'}
 layout = {'width': '400px'}
 
 # https://ipywidgets.readthedocs.io/en/latest/examples/Widget%20Events.html#Debouncing
+from IPython.display import display_html
+
 class Timer:
     def __init__(self, timeout, callback):
         self._timeout = timeout
@@ -117,7 +119,8 @@ class geo_metadata(object):
 
     def _prepare_widgets(self):
         self.widget_guidelines.append(self._widget_header())
-      
+        self.widget_guidelines.append(self._restart_project())
+
 
         # DOI
 
@@ -217,6 +220,32 @@ class geo_metadata(object):
         #%% About
         self.widget_about.append(_widget_about())
 
+   
+    def _restart_project(self):
+
+        button_restart = widgets.Button(description="restart")  
+
+        self.button_restart_box = widgets.HBox([button_restart])
+        def _on_button_restart_click(change):
+            #display_html("<script>Jupyter.notebook.kernel.restart()</script>",raw=True)
+            widgets.Widget.close_all()
+            obj = geo_metadata()
+            obj.manage()
+
+        button_restart.on_click(_on_button_restart_click)
+
+        text = widgets.HTML('''
+            <hr style="height:5px;border-width:0;color:black;background-color:gray">
+            ''')
+
+        vbox = widgets.VBox([button_restart, text])
+        #Close all widgets - closes all widgets currently in the widget manager (which also closes them in the kernel)
+        #Save widget state to notebook - Saves the current widget manager state to the notebook, overwriting any existing widget manager state.
+        #Clear widget state in notebook - Could be done by close all widgets, then saving widget state, but is more convenient
+
+        return vbox
+
+
     def _widget_header(self):
         """Show the header of the data mangement gui that explains the basic concepts
         """
@@ -246,8 +275,8 @@ class geo_metadata(object):
                 <ol>
                   <li> Use data importers for automatic metadata extraction </li>
                   <li> Use it locally for a maximum flexibility</li>
-                  <li> Keep track of your datasets structure during every stages: acquisition/processing/publication. 
-             Use the import/export tabs respectively to import a pre-existing JSON file and save your work </li>
+                  <li> Keep track of your datasets structure/metadata during every stages: acquisition/processing/publication: 
+                    Use the import/export tabs respectively to import a pre-existing JSON file and save your work </li>
                 </ol>
 
             <h4> Recommandations </h4>

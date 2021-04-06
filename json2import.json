@@ -1,9 +1,8 @@
 {
-    "method": "Geoelectrical - sEIT",
-    "measurement_type": "laboratory",
+    "method": "Geoelectrical - ERT",
+    "measurement_type": "Laboratory",
     "report_title": "short title",
     "report_authors": "Benjamin M",
     "owner": "B.M",
     "instrument": "Syscal Pro",
-    "data_dir": "E:/Padova/Z_Database/geometadp/TestData/01_Syscal"
 }
