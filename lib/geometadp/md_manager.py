@@ -936,7 +936,7 @@ class geo_metadata(object):
             #for name in self.ERT_upload.selected:
             name = self.ERT_upload.selected
 
-            self._add_to_Zip(self.ERT_upload.selected_filename, target_dir='', level_dir='')
+            self._add_to_Zip(self.ERT_upload.selected, target_dir='', level_dir='')
             self._update_widget_log('ERT file imported with REDA')
             self.metadata['ERT_filename_metadata'] = name
             ert = reda.ERT()
