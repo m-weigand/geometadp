@@ -25,6 +25,11 @@ import reda
 from datetime import date, datetime
 
 from lib.geometadp.about import _widget_about
+
+import tempfile
+import shutil
+import os
+
 #from lib.geometadp.EM import *
 
 #from about import _widget_about
@@ -116,6 +121,8 @@ class geo_metadata(object):
 
         self.widget_import = []
         self.widget_export = []
+        self.widget_export_HDF5 = []
+
         self.widget_logger = []
 
         self.widget_about = []
@@ -202,7 +209,7 @@ class geo_metadata(object):
         self.widget_sampling.append(self._widget_free_sampling())
 
         #%% DATA structure 
-        self.widget_data_structure.append(self._widgets_dataset_structure_doc())
+        #self.widget_data_structure.append(self._widgets_dataset_structure_doc())
         #self.widget_data_structure.append(self._widget_upload_img_button())
         #self.widget_data_structure.append(self._widget_external_ressource_more(my_columns))
         #self.widget_data_structure.append(self._widgets_dataset_structure())
@@ -216,6 +223,10 @@ class geo_metadata(object):
         self.widget_export.append(self._widget_export())
         self.widget_export.append(self._widget_download_buttons())
         self.widget_export.append(self._display_Zip())
+        self.widget_export.append(self._update_display_Zip())
+
+
+        self.widget_export_HDF5.append(self._widgets_HDF5_doc())
 
 
         #%% Import 
@@ -1534,10 +1545,10 @@ class geo_metadata(object):
         )
         vbox = widgets.VBox(
             [
-                widgets.HTML(
-                    '<hr style="height:5px;border-width:0;color:black;' +
-                    'background-color:gray"><hr />' +
-                    '<h3>Preview of metadata export:<h3 />'),
+                widgets.HTML('''
+                    <h4>Preview of metadata export:</h4>
+                    <hr style="height:1px;border-width:0;color:black;background-color:gray">
+                    '''),
                 self.export_type,
                 self.export
             ]
@@ -1548,6 +1559,7 @@ class geo_metadata(object):
             self._update_widget_export()
 
         self.export_type.observe(_observe_export_type)
+
         return vbox
 
 
@@ -1571,6 +1583,17 @@ class geo_metadata(object):
         # self.widget_export.value = metadata_str
         self.export.value = "<pre>{}</pre>".format(
             html.escape(metadata_str))
+
+
+
+    def _widgets_HDF5_doc(self):
+        title = widgets.HTML('''
+            <h4> HDF5 data container </h4>
+            <hr style="height:1px;border-width:0;color:black;background-color:gray">
+             ''')
+
+        vbox = widgets.VBox([title])
+        return vbox
 
 
     def _widget_upload_json(self):
@@ -1657,34 +1680,37 @@ class geo_metadata(object):
 
         self.download = widgets.Button(
                 value=False,
-                description='Download',
+                description='Save',
                 disabled=False,
                 button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='Download',
-                icon='download' # (FontAwesome names without the `fa-` prefix)
+                tooltip='Save',
+                icon='save' # (FontAwesome names without the `fa-` prefix)
             )
 
         metadata_json_raw = json.dumps(self.metadata, indent=4)
         # write tmp json file
 
 
-        vbox = widgets.VBox([self.download])
+        vbox_button = widgets.VBox([self.download])
+        vbox_file_save_name = widgets.Text(description='save name',value= 'json_backup.json') # Value from the user
+        vbox = widgets.HBox([vbox_button,vbox_file_save_name])
 
-        with open('json_backup.txt', 'w') as outfile:
-                json.dump(self.metadata, outfile)
-
-        self._add_to_Zip('json_backup.txt','','')
 
         def on_download_change(change): # read an display
-             with open('json_backup.txt', 'w') as outfile:
+            # with open(vbox_file_save_name.value, 'w') as outfile:
+            #    json.dump(self.metadata, outfile)
+            # link2file = FileLink(r'json_backup.json')
+            # linkwidget = widgets.HTML(
+            #            value="<a href={code}>link2file to click</a>".format(code=link2file),
+            #            description='Some HTML',
+            # )
+             with open(vbox_file_save_name.value, 'w') as outfile:
                 json.dump(self.metadata, outfile)
-             link2file = FileLink(r'json_backup.txt')
-             linkwidget = widgets.HTML(
-                        value="<a href={code}>link2file to click</a>".format(code=link2file),
-                        description='Some HTML',
-             )
 
-             vbox_link = widgets.HBox([vbox,linkwidget])
+                self._add_to_Zip(vbox_file_save_name.value,'','')
+
+
+             #vbox_link = widgets.HBox([vbox,linkwidget])
 
         self.download.on_click(on_download_change)
 
@@ -1692,50 +1718,115 @@ class geo_metadata(object):
 
 
     def _add_to_Zip(self,filename, target_dir, level_dir):
-        z = zipfile.ZipFile("project.zip", 'a')
-
         
+        try:
+            z = zipfile.ZipFile("project.zip", 'r')
+        except:
+            z = zipfile.ZipFile("project.zip", 'w')
+            z.close()
+
         path = target_dir + '\\' + level_dir + '\\' +  os.path.basename(filename)
+        #print(path)
 
 
-        def zipdir(path, filename, ziph):
-            #filePath = os.path.join(os.getcwd(), path)
-            ziph.write(filename,path)
-        zipdir(path, filename, z)
-        z.close()
+        def remove_from_zip(zipfname, *filenames):
+            tempdir = tempfile.mkdtemp()
+            try:
+                tempname = os.path.join(tempdir, 'new.zip')
+                with zipfile.ZipFile(zipfname, 'r') as zipread:
+                    with zipfile.ZipFile(tempname, 'w') as zipwrite:
+                        for item in zipread.infolist():
+                            if item.filename not in filenames:
+                                data = zipread.read(item.filename)
+                                zipwrite.writestr(item, data)
+                shutil.move(tempname, zipfname)
+            finally:
+                shutil.rmtree(tempdir)
 
+        remove_from_zip('project.zip', path)
+        with zipfile.ZipFile('project.zip', 'a') as z:
+            z.write(filename,path)
+            z.close()
+
+             #vbox_link = widgets.HBox([vbox,linkwidget])
+
+        self._display_Zip()
+
+
+    def ulify_tree(self,elements):
+        #    indent = " " * 4
+
+        def count_level(test_str):
+            count = 0
+            for i in test_str:
+                if i == '/':
+                    count = count + 1
+            return count 
+
+        string = "<ul>\n"
+        for s in elements:
+            c_level = count_level(s)
+            if c_level == 0:
+                string += "\n".join(["<li>" + str(s) + "</li>"])
+            elif c_level ==1:
+                string += "\n".join(["<li>"  + '...' + str(s) + "</li>"])
+            elif c_level ==2:
+                string += "\n".join(["<li>" + '......' + str(s) + "</li>"])
+        #string += "\n".join(["<li>" + str(s) + "</li>" for s in elements])
+        string += "\n</ul>"
+        
+        return string
 
     def _display_Zip(self):
 
-        try:
-            z = zipfile.ZipFile("project.zip", 'r')
-            header= widgets.HTML('''
-                    <h2>File Structure<h2/>
-                    ''')
+        z = zipfile.ZipFile("project.zip", 'a')
 
-            struct_str = self.ulify(z.namelist())
+        header= widgets.HTML('''
+                <h4>Preview of files structure</h4>
+                <hr style="height:1px;border-width:0;color:black;background-color:gray">
+                ''')
+        vbox_zip = widgets.VBox([header])
+
+        self.struct_str = self.ulify_tree(z.namelist())
+
+        self.zipstruct = widgets.HTML(
+                    value=self.struct_str,
+                    description='project.zip')
+        #self.zipstruct = widgets.Textarea(
+        #            value=self.ulify(z.namelist()),
+        #            description='project.zip')
 
 
-            zipstruct = widgets.HTML(
-                        value=struct_str,
-                        description='Some HTML')
-            vbox_zip = widgets.VBox([header, zipstruct])
+        vbox_zip = widgets.VBox([header,self.zipstruct])
+        z.close()
 
-        # Do something with the file
-        except IOError:
-            print("File not accessible")
-        finally:
-            z.close()
+        #self.update_display_Zip()
 
-        z = zipfile.ZipFile("project.zip", 'r')
 
         return vbox_zip
 
 
+    def _update_display_Zip(self):
 
-        #self.z.printdir()
-        #self.z.write(filename,target_dir)
-        #self.z.close()
+        self.update = widgets.Button(
+                value=False,
+                description='Update',
+                disabled=False,
+                button_style='', # 'success', 'info', 'warning', 'danger' or ''
+                tooltip='Update',
+                icon='update' # (FontAwesome names without the `fa-` prefix)
+            )
+
+        vbox = widgets.VBox([self.update])
+
+        def on_update_change(change): # read an display
+            print('call update')
+            self._display_Zip()
+
+        self.update.on_click(on_update_change)
+
+        return vbox
+
 
     def _widget_log(self):
         """Report errors
@@ -1801,7 +1892,12 @@ class geo_metadata(object):
         self.vbox_quality = widgets.VBox(self.widget_quality)
         self.vbox_sampling = widgets.VBox(self.widget_sampling)
         self.vbox_import = widgets.VBox(self.widget_import)
+
+
         self.vbox_export = widgets.VBox(self.widget_export)
+        self.vbox_HDF5 = widgets.VBox(self.widget_export_HDF5)
+
+
         self.vbox_logger = widgets.VBox(self.widget_logger)
         #self.vbox_data_structure = widgets.VBox(self.widget_data_structure)
 
@@ -1828,9 +1924,16 @@ class geo_metadata(object):
         accordion_tab_EM.set_title(0, 'Upload EM file')
         accordion_tab_EM.set_title(1, 'Related data ressources')
 
+
+        accordion_tab_export = widgets.Accordion(children=[self.vbox_HDF5],
+                                                       selected_index = None)
+        accordion_tab_export.set_title(0, 'HDF5 container')
+
+
         vbox_tab0 = widgets.VBox([self.vbox_guidelines,accordion_tab0])
         vbox_tab_ERT = widgets.VBox([self.vbox_ERT,accordion_tab_ERT])        
         vbox_tab_EM = widgets.VBox([self.vbox_EM,accordion_tab_EM])
+        vbox_tab_export = widgets.VBox([self.vbox_export,accordion_tab_export])
                           
 
         
@@ -1845,7 +1948,7 @@ class geo_metadata(object):
                                        self.vbox_quality,
                                        #self.vbox_sampling,
                                        #self.vbox_data_structure,
-                                       self.vbox_export,
+                                       vbox_tab_export,
                                        self.vbox_logger,
                                        self.vbox_about
                                       ])
