@@ -476,7 +476,7 @@ class geo_metadata(object):
        self.geojson_upload = FileChooser(use_dir_icons=True)
        self.geojson_upload.title = '<b>GeoJSON</b>'
 
-       print(self.geojson_upload.selected)
+       #print(self.geojson_upload.selected)
        vbox = widgets.VBox([self.geojson_upload])
 
        def _on_upload_change():
@@ -1347,8 +1347,6 @@ class geo_metadata(object):
         def generate_filter(button):
             # Check if exist before creating
             widget_name = method_str + select_definition.value
-            print(select_definition.value)
-            print(widget_name)
             new_widget = widgets.Text(description=select_definition.value) # Value from the user
 
             new_upload = widgets.FileUpload(
@@ -1820,7 +1818,7 @@ class geo_metadata(object):
         vbox = widgets.VBox([self.update])
 
         def on_update_change(change): # read an display
-            print('call update')
+            #print('call update')
             self._display_Zip()
 
         self.update.on_click(on_update_change)
