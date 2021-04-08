@@ -12,3 +12,9 @@
 ## Wishlist
 
 * add Time-lapse and multiples datasets option 
+
+
+Contributors
+------------
+- Maximilian Weigand, Ubonn
+- Benjamin Mary, University of Padua
