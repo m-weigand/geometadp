@@ -31,12 +31,6 @@ The GUI can be run online through Binder, or downloaded and run locally.
 1. Launch the binder
 2. Select the notebook 'run_GUI' and run it
 
-[//]: <> ([<img src="CAGS_metadata_Manager.png" width=90%>](https://agrogeophy.github.io/geometadp))
-
-
-[<img src="Intro_GUI.mp4" width=60%>](https://agrogeophy.github.io/geometadp)
-
-
 ### Standards
 
 Geometadp metadata heavily rely on the two following standards: 
