@@ -121,7 +121,7 @@ class geo_metadata(object):
 
         self.widget_import = []
         self.widget_export = []
-        self.widget_export_HDF5 = []
+        #self.widget_export_HDF5 = []
 
         self.widget_logger = []
 
@@ -130,11 +130,9 @@ class geo_metadata(object):
         self._prepare_widgets()
 
     def _prepare_widgets(self):
+
         self.widget_guidelines.append(self._widget_header())
         self.widget_guidelines.append(self._restart_project())
-
-
-        # DOI
 
         #%% REPORT: title/authors
         self.widget_ownership.append(self._widget_report_title())
@@ -226,7 +224,7 @@ class geo_metadata(object):
         self.widget_export.append(self._update_display_Zip())
 
 
-        self.widget_export_HDF5.append(self._widgets_HDF5_doc())
+        #self.widget_export_HDF5.append(self._widgets_HDF5_doc())
 
 
         #%% Import 
@@ -1874,7 +1872,7 @@ class geo_metadata(object):
 
         self.vbox_guidelines = widgets.VBox(self.widget_guidelines)
 
-        self.vbox = widgets.VBox(self.widget_ownership)
+        self.vbox_ownership = widgets.VBox(self.widget_ownership)
         self.vbox_survey = widgets.VBox(self.widget_survey)
         self.vbox_survey_map = widgets.VBox(self.widget_survey_map)
 
@@ -1893,7 +1891,7 @@ class geo_metadata(object):
 
 
         self.vbox_export = widgets.VBox(self.widget_export)
-        self.vbox_HDF5 = widgets.VBox(self.widget_export_HDF5)
+        #self.vbox_HDF5 = widgets.VBox(self.widget_export_HDF5)
 
 
         self.vbox_logger = widgets.VBox(self.widget_logger)
@@ -1904,7 +1902,7 @@ class geo_metadata(object):
         self.vbox_about = widgets.VBox(self.widget_about)
 
 
-        accordion_tab0 = widgets.Accordion(children=[self.vbox, self.vbox_survey, self.vbox_survey_map],
+        accordion_tab0 = widgets.Accordion(children=[self.vbox_ownership, self.vbox_survey, self.vbox_survey_map],
                                                        selected_index = None)
         accordion_tab0.set_title(0, 'Owner*')
         accordion_tab0.set_title(1, 'General Survey description*')
