@@ -1,5 +1,3 @@
-.. _beginner:
-
 Beginner tricks
 ===============
 
