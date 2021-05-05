@@ -32,7 +32,7 @@ jobs:
       - name: Reset gh-pages to master and force push
         run: |
           git pull
-          git reset --hard origin/master
+          git reset --hard origin/main
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git push --force
