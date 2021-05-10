@@ -1,15 +1,13 @@
-    
 agrogeophysic-geometadata
 =========================
 
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Introduction:
    
    getting-started
    contibutors
-   ../CODE_OF_CONDUCT
    terms_of_use
 
 .. toctree::

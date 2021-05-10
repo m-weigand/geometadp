@@ -121,7 +121,7 @@ class geo_metadata(object):
 
         self.widget_import = []
         self.widget_export = []
-        #self.widget_export_HDF5 = []
+        self.widget_export_HDF5 = []
 
         self.widget_logger = []
 
@@ -224,7 +224,7 @@ class geo_metadata(object):
         self.widget_export.append(self._update_display_Zip())
 
 
-        #self.widget_export_HDF5.append(self._widgets_HDF5_doc())
+        self.widget_export_HDF5.append(self._widgets_HDF5_doc())
 
 
         #%% Import 
@@ -1891,7 +1891,7 @@ class geo_metadata(object):
 
 
         self.vbox_export = widgets.VBox(self.widget_export)
-        #self.vbox_HDF5 = widgets.VBox(self.widget_export_HDF5)
+        self.vbox_HDF5 = widgets.VBox(self.widget_export_HDF5)
 
 
         self.vbox_logger = widgets.VBox(self.widget_logger)
