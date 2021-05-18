@@ -1,0 +1,24 @@
+{
+    "method": "EM",
+    "report_title": "Short description of the dataset",
+    "report_authors": "Author 1, Author 2",
+    "owner": "Owner",
+    "email": "myemail@gmail.com",
+    "dataset_DOI": "10.5281/zenodo.4058524",
+    "measurement_type": "Field",
+    "xy_coords_file": "C:\\Users\\Benjamin\\Documents\\geometadp\\test_data\\Spatial_data\\2dline.csv",
+    "instrument": "CMD mini explorer",
+    "date": "2021-04-08",
+    "coil_config": [
+        "VMD",
+        "PRP",
+        "HCP"
+    ],
+    "coil_height": "1",
+    "em_file": "C:\\Users\\Benjamin\\Documents\\geometadp\\test_data\\EM_data\\EM_test_coverCrop.csv",
+    "coil_spacing": "0.32;0.71;1.18;0.32;0.71;1.18",
+    "description_EM": "My EM survey description",
+    "time_lapse": "True",
+    "nb_of_files_TL": "4",
+    "time_interval_TL": "5"
+}
