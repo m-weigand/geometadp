@@ -163,13 +163,13 @@ class geo_metadata(object):
         # Time lapse data flag
             # nb of files
             # date/time flag
-        self.widget_timelapse.append(self._timelapse_option())
+        #self.widget_timelapse.append(self._timelapse_option())
         #self.widget_timelapse.append(self._nb_of_files())
         #self.widget_timelapse.append(self._time_schedule())
 
 
         #%% ERT metadata: Date_measure/ Time_measure/ Elec_conf/ Elec_spacing
-        self.widget_ERT.append(self._widgets_ERT_doc())
+        #self.widget_ERT.append(self._widgets_ERT_doc())
         self.widget_ERT.append(self._widget_instrument())
         self.widget_ERT.append(self._widget_datetime())
         # self.widget_objects.append(self._widget_time())
@@ -179,10 +179,13 @@ class geo_metadata(object):
         self.widget_ERT.append(self._widget_description_ERT())
         self.widget_ERT.append(self._widget_ERT_more())
         self.widget_ERT.append(self._timelapse_option())
+        #self.widget_ERT.append(self._timelapse_slider())
+
+
 
         self.widget_ERT_upload.append(self._widget_upload_ERT_button()) 
-        self.widget_ERT_upload.append(self._display_head_table()) 
-        self.widget_ERT_files.append(self._widgets_ERT_add_file())
+        #self.widget_ERT_upload.append(self._display_head_table()) 
+        #self.widget_ERT_files.append(self._widgets_ERT_add_file())
 
 
         #%% EM metadata
@@ -239,6 +242,7 @@ class geo_metadata(object):
         #%% Import 
         self.widget_import.append(self._widget_upload_button())
         self.widget_import.append(self._widget_upload_json())
+        #self.widget_import.append(self._widget_upload_from_db())
 
         #%% Logger
         self.widget_logger.append(self._widget_log())
@@ -665,13 +669,18 @@ class geo_metadata(object):
         self.widget_method.observe(_observe_method)
         return self.widget_method
 
+#%% TIME LAPSE MANAGEMENT
+
+
+
     def _timelapse_option(self, reloadJSON=False):
 
-        text = widgets.HTML('''
-            <hr style="height:5px;border-width:0;color:black;background-color:gray">
-            ''')
+        #text = widgets.HTML('''
+        #    <hr style="height:5px;border-width:0;color:black;background-color:gray">
+        #    ''')
 
-        vbox_TL = widgets.VBox([text])
+        #vbox_TL = widgets.VBox([text])
+        vbox_TL = widgets.VBox()
 
         if reloadJSON==False:
 
@@ -702,10 +711,10 @@ class geo_metadata(object):
                 self.metadata['time_lapse'] = 'True'
                 vbox_nb_of_files = self._nb_of_files_TL()
                 vbox_time_interval = self._time_interval_TL()
-                vbox_create_TL_tabs = self._create_TL_tabs()
+                #vbox_create_TL_tabs = self._create_TL_tabs()
                 vbox_TL.children = (*vbox_TL.children, vbox_nb_of_files)
                 vbox_TL.children = (*vbox_TL.children, vbox_time_interval)
-                vbox_TL.children = (*vbox_TL.children, vbox_create_TL_tabs)
+                #vbox_TL.children = (*vbox_TL.children, vbox_create_TL_tabs)
                 #self._update_widget_export()
 
             
@@ -723,16 +732,11 @@ class geo_metadata(object):
             #button_False.on_click(_on_button_False_click)
 
         else:
-            #print('test reload')
-            #print(vbox_TL.children)
             self.metadata['time_lapse'] = 'True'
             vbox_nb_of_files = self._nb_of_files_TL()
             vbox_time_interval = self._time_interval_TL()
-            vbox_create_TL_tabs = self._create_TL_tabs()
             vbox_TL.children = (*vbox_TL.children, vbox_nb_of_files)
             vbox_TL.children = (*vbox_TL.children, vbox_time_interval)
-            vbox_TL.children = (*vbox_TL.children, vbox_create_TL_tabs)
-            #print(vbox_TL.children)
             self._update_widget_export()    
 
 
@@ -748,8 +752,10 @@ class geo_metadata(object):
         #display(vbox)
 
 
+
+
     def _nb_of_files_TL(self):
-        self.widget_nb_files_TL = widgets.Text(
+        self.widget_nb_files_TL = widgets.IntText(
             description='Nb of steps',            
             style=style,
             layout=Layout(display='flex',flex_flow='row',justify_content='space-between',width='80%')
@@ -768,10 +774,13 @@ class geo_metadata(object):
         #container.children = children
 
         def _observe_nb_of_files_TL(change):
-            self.metadata['nb_of_files_TL'] = self.widget_nb_files_TL.value
+            print('observe')
+            self.metadata['nb_of_files_TL'] = change.new
+            #self.widget_TL_slider.max = change.new
             self._update_widget_export()
+            self._add_children_TL()
 
-        self.widget_nb_files_TL.observe(_observe_nb_of_files_TL)
+        self.widget_nb_files_TL.observe(_observe_nb_of_files_TL,'value')
 
         #return self.widget_nb_files_TL
         return container
@@ -800,36 +809,198 @@ class geo_metadata(object):
         return container
 
 
-    def _create_TL_tabs(self):
 
-        button_create_TL_tabs = widgets.Button(description="Create_TL_tabs",
-                                                button_style='warning',
-                                               layout=Layout(display='flex',flex_flow='row',justify_content='space-between',width='80%')
-                                                )  
+    def _timelapse_slider(self):
 
-        self.button_restart_box = widgets.HBox([button_create_TL_tabs])
-        def _on_button_create_TL_tabs_click(change):
-            #tab_contents = ['P0', 'P1', 'P2', 'P3', 'P4']
-            #children = [widgets.Text(description=name) for name in tab_contents]
-            #tab = widgets.Tab()
-            #tab.children = children
-            #tab.titles = [str(i) for i in range(len(children))]
-            #tab
-            #display(tab)
-            print('create_TL_tabs')
+        self.widget_TL_slider = widgets.IntSlider(
+                                            value=1,
+                                            min=1,
+                                            max=1,
+                                            step=1,
+                                            description='Choose the time step to display:',
+                                            disabled=False,
+                                            continuous_update=False,
+                                            orientation='horizontal',
+                                            readout=True,
+                                            readout_format='d'
+                                        )
+        vbox_TL_slider = widgets.VBox([self.widget_TL_slider])
 
-        button_create_TL_tabs.on_click(_on_button_create_TL_tabs_click)
+        return vbox_TL_slider
 
-        text = widgets.HTML('''
-            <hr style="height:5px;border-width:0;color:black;background-color:gray">
-            ''')
+    def create_TL_widgets(child_to_create, steps):
+        #print('*****_create_TL_widgets*****')
+        #print(child_to_create)
+        #print(child_to_create._view_name)
 
-        vbox = widgets.VBox([button_create_TL_tabs, text])
-        #Close all widgets - closes all widgets currently in the widget manager (which also closes them in the kernel)
-        #Save widget state to notebook - Saves the current widget manager state to the notebook, overwriting any existing widget manager state.
-        #Clear widget state in notebook - Could be done by close all widgets, then saving widget state, but is more convenient
+        if child_to_create._view_name == 'TextView':
+            new_widgets_TL = widgets.Text(description=child_to_create.description + str(steps[0]),style=style,layout=layout)
 
-        return vbox
+        if child_to_create._view_name == 'RadioButtonsView':
+            new_widgets_TL = widgets.RadioButtons(options=child_to_create.options,
+                                               value=child_to_create.value,
+                                               description=child_to_create.description + str(steps[0]),
+                                               disabled=False,style=style,layout=layout)
+
+        if child_to_create._view_name == 'HTMLView':
+            new_widgets_TL = widgets.HTML(description=child_to_create.description,value=child_to_create.value,style=style,layout=layout)
+
+        if child_to_create._view_name == 'DropdownView':
+            new_widgets_TL = widgets.Dropdown(layout=Layout(width='10%'), options=child_to_create.options, value=child_to_create.value,style=style)
+
+        if child_to_create._view_name == 'ButtonView':
+            new_widgets_TL = widgets.Button(description=child_to_create.description, layout=Layout(width='auto'), style=ButtonStyle())
+
+        if child_to_create._view_name == 'HBoxView':
+            child_to_create_children = []
+            for childs in child_to_create.children:
+                child_to_create_children.append(childs)
+
+            new_widgets_TL = widgets.HBox(children=(child_to_create_children),style=style,layout=layout)
+
+        if child_to_create._view_name == 'VBoxView':
+            new_widgets_TL = widgets.VBox()
+
+        if child_to_create._view_name == 'IntSliderView':
+            new_widgets_TL = widgets.IntSlider(value=child_to_create.value, 
+                                                continuous_update=False, description='Choose the time step to display:', max=3, min=1,style=style,layout=layout)
+
+        if child_to_create._view_name == 'OutputView':
+            new_widgets_TL = widgets.Output(layout=Layout(border='1px solid black'),style=style)
+
+        if child_to_create._view_name == 'DatePickerView':
+            new_widgets_TL = widgets.DatePicker(value=child_to_create.value, description='Datetime of measurement' + str(steps[0]), 
+                layout=Layout(width='auto'), disabled=False, style=style)
+
+        if child_to_create._view_name == 'SelectView':
+            new_widgets_TL = FileChooser(use_dir_icons=True)
+
+        if child_to_create._view_name == 'TextareaView':
+            new_widgets_TL = Textarea(value=child_to_create.value, description='Short description of the dataset' + str(steps[0]), 
+                            layout=Layout(display='flex', flex_flow='row', 
+                            justify_content='space-between', width='80%'), 
+                            style=style)
+
+            
+
+
+
+        return new_widgets_TL
+
+    def _add_children_TL(self): # add children tabs to existing root tab
+        print('add children')
+        vboxTL_min_req = []
+        TL_upload = []
+        accordionTL = []
+        self.TL_tab = widgets.Tab()
+        TL_names = []
+        #print(self.widget_nb_files_TL.value)
+        #print(self.metadata['nb_of_files_TL'])
+
+        for steps in enumerate(np.arange(0,self.metadata['nb_of_files_TL'])): # tab nest = time lapse
+            #print(steps)
+        #for steps in enumerate(np.arange(0,3)): # tab nest = time lapse
+            TL_names.append('step'+ str(steps[0]))
+            TL_min_req = []
+            for child in self.vbox_tab_ERT.children: # second accordion
+                #print(child)
+                #print('*******')
+                if hasattr(child,'children'):
+                    for child_2nd in child.children: # 1st/second accordion
+                        #print(child_2nd)
+                        #print('++++')
+                        if hasattr(child_2nd,'children'):
+                            for child_3rd in child_2nd.children: # loop within each accordions
+                                #print('.....')
+                                if hasattr(child_3rd,'children'):
+                                    #print('3')
+                                    for child_4th in child_3rd.children: # loop within each accordions
+                                        if hasattr(child_4th,'children'):
+                                            #print('4')
+                                            for child_5th in child_4th.children: # loop within each accordions
+                                                if hasattr(child_5th,'children'):
+                                                    #print('5')
+                                                    for child_6th in child_5th.children: # loop within each accordions
+                                                        if hasattr(child_6th,'children'):
+                                                            for child_7th in child_6th.children: # loop within each accordions
+                                                        #        try:
+                                                        #            child_6th.selected
+                                                        #            print('selected')
+                                                        #            print(child_6th.selected)
+                                                        #            print('TL_upload')
+                                                        #            TL_upload.append(FileChooser(use_dir_icons=True, title=child_6th.title + str(steps[0])))
+                                                        #        except:
+                                                        #    pass
+                                                                new_widgets_TL = geo_metadata.create_TL_widgets(child_7th,steps)
+                                                                TL_min_req.append(new_widgets_TL)
+                                                                #print('TLminreq' + str(TL_min_req))
+                                                        else:
+                                                            new_widgets_TL = geo_metadata.create_TL_widgets(child_6th,steps)
+                                                            TL_min_req.append(new_widgets_TL)
+                                                            #print('TLminreq' + str(TL_min_req))
+
+                                            else:
+                                                new_widgets_TL = geo_metadata.create_TL_widgets(child_5th,steps)
+                                                TL_min_req.append(new_widgets_TL)
+                                                #print('TLminreq' + str(TL_min_req))
+
+                                        else:
+                                            new_widgets_TL = geo_metadata.create_TL_widgets(child_4th,steps)
+                                            TL_min_req.append(new_widgets_TL)
+                                            #print('TLminreq' + str(TL_min_req))
+                                else:
+                                    new_widgets_TL = geo_metadata.create_TL_widgets(child_3rd,steps)
+                                    TL_min_req.append(new_widgets_TL)
+                                    #print('TLminreq' + str(TL_min_req))
+                            
+                        else:
+                            new_widgets_TL = geo_metadata.create_TL_widgets(child_2nd,steps)
+                            TL_min_req.append(new_widgets_TL)
+                            #print('TLminreq' + str(TL_min_req))
+                else:
+                    new_widgets_TL = geo_metadata.create_TL_widgets(child,steps)
+                    TL_min_req.append(new_widgets_TL)
+                    #print('TLminreq' + str(TL_min_req))
+
+            vboxTL_min_req.append(widgets.VBox(TL_min_req))
+            #print(vboxTL_min_req)
+            #accordionTL.append(widgets.Accordion(children=[vboxTL_min_req[steps[0]],TL_upload[steps[0]]], 
+            #                                titles=('Min meta', 'Upload')))            
+            accordionTL.append(widgets.Accordion(children=[vboxTL_min_req[steps[0]]]))
+            accordionTL[steps[0]].set_title(index=0, title='Min meta')
+            #accordionTL[steps[0]].set_title(index=1, title='Upload')
+
+                #print('len acc' + str(len(accordionTL)))
+                #print(accordionTL[steps[0]])
+        self.TL_tab.children = accordionTL
+        [self.TL_tab.set_title(num,name) for num, name in enumerate(TL_names)]
+        #tab.children = [TL_tab, vbox_metadata]
+        #print(TL_tab)
+        #display(TL_tab)
+        #self.tab[2].children = TL_tab
+        self._create_TL_tabs()
+
+
+        def _observe_TL(change):
+            print('obs TL')
+            #if change['type'] == 'change' and change['name'] == 'value':
+            #print('change:' + str(change['new']))
+            #for child in self.TL_tab.children: # second accordion
+            self._observe_minreq_TL()
+            self._update_widget_export()
+
+            #for child in self.TL_tab.children:
+            #    print('child observe:' + str(child))
+            #    for child2 in child.children:
+            #        try:
+            #            child2.register_callback(_observe_upload_TL)
+            #        except:
+            #            pass
+
+        self.TL_tab.observe(_observe_TL,'selected_index')
+
+
+        return self.vbox_tab_ERT.children
 
 
     def _widget_measurement_type(self):
@@ -933,7 +1104,6 @@ class geo_metadata(object):
 
         self.widget_elec_config.observe(_observe_elec_config)
         return self.widget_elec_config
-
 
 
     def _widget_ERT_more(self):
@@ -1786,6 +1956,50 @@ class geo_metadata(object):
         vbox = widgets.VBox([title, text])
         return vbox
 
+    def _widget_upload_from_db(self):
+        """upload csv file from github db
+        """
+        title = widgets.HTML(
+            '''<h3>Upload json file<h3/>
+               <hr style="height:1px;border-width:0;color:black;background-color:gray">
+
+
+                <h4> Metadata templates </h4>
+                <p> Metadata templates for generic survey to upload are available on the github page.
+                If you require additionnal metadata, please let us know by opening an issue <a href="https://github.com/agrogeophy/geometadp" target="_blank">on github</a>.
+                </p>
+
+            ''')
+
+        df = pd.read_csv(
+            'https://raw.githubusercontent.com/agrogeophy/catalog/master/db.csv')
+        #df = df.drop(df.columns[[0]], axis=1)
+
+        df['contribution_type'].unique().tolist()
+
+        textbox = widgets.Dropdown(
+            description='instrument:   ',
+            options=df['contribution_type'].unique().tolist(),
+            disabled=False
+        )
+
+        out = widgets.Output(layout={'border': '1px solid black'})
+        delete.parent = out
+        self.button_display_table_box = widgets.HBox([button_display_table,delete])
+
+        #display_head_table_box = widgets.VBox([self.button_display_table_box,container_head_table])
+        #display_head_table_box = widgets.VBox([self.button_display_table_box,container_head_table])
+
+        def display_df(button):
+
+            with out:
+                display(self.ert.data)
+
+        #output_db = 
+        #display(df)
+        vbox = widgets.VBox([title, text])
+        return vbox
+
     def _widget_upload_button(self):
        """Import pre-existing JSON file"""
 
@@ -2126,6 +2340,52 @@ class geo_metadata(object):
         self.log.value  = self.string
 
 
+    def _observe_minreq_TL(self):
+
+        def on_TL_tab_change(change):
+            self.metadata[steps.description] = child.value
+            metadata_json_raw = json.dumps(self.metadata, indent=4)
+            export.value = "<pre>{}</pre>".format(
+                html.escape(metadata_json_raw))
+
+
+        for child in self.TL_tab.children: # second accordion
+            print('..................')
+            child._observe(on_TL_tab_change,'value')
+            for child2 in child.children:
+                print('child2')
+                child2._observe(on_TL_tab_change,'value')
+                if hasattr(child2, 'description^^^^'):
+                        print('description')
+                for child3 in child2.children:
+                    child3._observe(on_TL_tab_change,'value')
+                    print('child3')
+                    print(child3)
+                    if hasattr(child3, 'description^^^^'):
+                        print('description')
+
+
+   #def _update_tab(self):
+
+        #def _observe_Test(change):
+        #if change['type'] == 'change' and change['name'] == 'value':
+        #    print(change)
+
+        #self.widget_nb_files_TL.observe(_observe_Test,'value')
+        #self.vbox_tab_ERT.children = [self.TL_tab]
+
+
+
+
+
+    def _create_TL_tabs(self):
+        print('_create_TL_tabs')
+        self.vbox_tab_ERT.children = [self.TL_tab]
+        
+
+        return self.vbox_tab_ERT
+
+
     def manage(self):
 
         self.vbox_guidelines = widgets.VBox(self.widget_guidelines)
@@ -2168,11 +2428,37 @@ class geo_metadata(object):
         accordion_tab0.set_title(1, 'General Survey description*')
         accordion_tab0.set_title(2, 'Geolocalisation*')
 
-        accordion_tab_ERT = widgets.Accordion(children=[self.vbox_upload_ERT_data,
-                                                       self.vbox_upload_ERT_files],
+
+        accordion_tab_ERT = widgets.Accordion(children=[self.vbox_upload_ERT_data],                                                       
                                                        selected_index = None)
-        accordion_tab_ERT.set_title(0, 'Upload ERT file')
-        accordion_tab_ERT.set_title(1, 'Related data ressources')
+
+        #accordion_tab_ERT = widgets.Accordion(children=[self.vbox_upload_ERT_data,
+        #                                               self.vbox_upload_ERT_files],
+        #                                               selected_index = None)
+
+                                                               #acc_0_ERT = 'Upload ERT file'
+        #def slider_value_changed(change):
+        #    print('obs')
+        #    acc_0_ERT = 'Upload ERT file step: ' + str(change.new)
+        #    acc_1_ERT = 'Related data ressources step: ' + str(change.new)
+        #    accordion_tab_ERT.children[0].layout.display = 'none'
+        #    accordion_tab_ERT.children[1].layout.display = 'none'
+        #    print(accordion_tab_ERT.children[0])
+        #    accordion_tab_ERT = self.vbox_upload_ERT_files
+            #accordion_tab_ERT = widgets.Accordion(children=[self.vbox_upload_ERT_data,
+            #                                   self.vbox_upload_ERT_files],
+            #                                   selected_index = None)
+        #    accordion_tab_ERT.set_title(0, acc_0_ERT)
+            #accordion_tab_ERT.set_title(1, acc_1_ERT)
+
+        #self.widget_TL_slider.observe(slider_value_changed,'value')   
+
+
+        #accordion_tab_ERT.set_title(0, acc_0_ERT)
+        #accordion_tab_ERT.set_title(1, 'Related data ressources')
+
+
+
 
         accordion_tab_EM = widgets.Accordion(children=[self.vbox_upload_EM_data,
                                                        self.vbox_upload_EM_files],
@@ -2188,19 +2474,18 @@ class geo_metadata(object):
 
 
         vbox_tab0 = widgets.VBox([self.vbox_guidelines,accordion_tab0])
-        vbox_tab_ERT = widgets.VBox([self.vbox_ERT,accordion_tab_ERT])        
+        self.vbox_tab_ERT = widgets.VBox([self.vbox_ERT,accordion_tab_ERT])        
         vbox_tab_EM = widgets.VBox([self.vbox_EM,accordion_tab_EM])
         vbox_tab_export = widgets.VBox([self.vbox_export,accordion_tab_export])
                           
 
-        
-        
         self._update_widget_export()
+        #self._update_tab()
 
 
-        tab  = widgets.Tab(children = [vbox_tab0, 
+        self.tab  = widgets.Tab(children = [vbox_tab0, 
                                        self.vbox_import,
-                                       vbox_tab_ERT,
+                                       self.vbox_tab_ERT,
                                        vbox_tab_EM,                                       
                                        self.vbox_quality,
                                        #self.vbox_sampling,
@@ -2211,15 +2496,15 @@ class geo_metadata(object):
                                       ])
 
 
-        tab.set_title(0, 'Home')
-        tab.set_title(1, 'Import')
-        tab.set_title(2, 'ERT')
-        tab.set_title(3, 'EM')
-        tab.set_title(4, 'Quality')
+        self.tab.set_title(0, 'Home')
+        self.tab.set_title(1, 'Import')
+        self.tab.set_title(2, 'ERT')
+        self.tab.set_title(3, 'EM')
+        self.tab.set_title(4, 'Quality')
         #tab.set_title(4, 'Sampling')
-        tab.set_title(5, 'Export')
+        self.tab.set_title(5, 'Export')
         #tab.set_title(5, 'Data structure')
-        tab.set_title(6, 'Logger')
-        tab.set_title(7, 'About')
+        self.tab.set_title(6, 'Logger')
+        self.tab.set_title(7, 'About')
 
-        display(tab)
+        display(self.tab)
