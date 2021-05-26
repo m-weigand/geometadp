@@ -1,0 +1,11 @@
+{
+    "method": "Geoelectrical - ERT",
+    "time_lapse": "True",
+    "report_title": "",
+    "nb_of_files_TL": "5",
+    "Instrument ERT0": "Syscal",
+    "Instrument ERT1": "Syscal3",
+    "Instrument ERT2": "Syscal",
+    "Instrument ERT3": "Syscal",
+    "measurement_type": "Field"
+}
