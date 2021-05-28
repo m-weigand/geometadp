@@ -1061,25 +1061,37 @@ class geo_metadata(object):
             vboxTL_upload_supp.append(widgets.VBox(TL_upload_supp))
 
 
-        intro_tl_resume = widgets.HTML('not yet implemented; resume tab with map + interactive table showing imported data')
-        vboxTL_resume = widgets.VBox(intro_tl_resume,TL_min_req)
-        #self.TL_head_control = self._add_TL_header_control() # To implement, header control for very large time lapse dataset (including a slider to select quickly)
 
 
             self.accordionTL.append(widgets.Accordion(children=[vboxTL_min_req[steps[0]],
                                                                 vboxTL_upload[steps[0]],
                                                                 vboxTL_upload_supp[steps[0]]],
-                                                                vboxTL_resume
-                                                            titles=('Min meta', 'Upload dataset', 'Supplementary material','Resume')))            
+                                                            titles=('Min meta', 'Upload dataset', 'Supplementary material')))            
             self.accordionTL[steps[1]].set_title(index=0, title='Min meta')
             self.accordionTL[steps[1]].set_title(index=1, title='Upload')
             self.accordionTL[steps[1]].set_title(index=2, title='Related data ressources')
 
         #self.TL_head_control = self._add_TL_header_control() # To implement, header control for very large time lapse dataset (including a slider to select quickly)
+        intro_tl_resume = widgets.HTML('''
+                not yet implemented; resume tab with map + interactive table showing imported data
+             ''')
 
+        #self.TL_head_control = self._add_TL_header_control() # To implement, header control for very large time lapse dataset (including a slider to select quickly)
+
+        #self.resume_tab = widgets.Tab() # create TL tabs
+        #self.vboxTL_resume = widgets.VBox([intro_tl_resume])
+        #self.resume_tab.children = self.vboxTL_resume
+        #[self.resume_tab.set_title(num,name) for num, name in enumerate(['resume'])]
+
+        
+
+        #self.TL_tab.children = [self.accordionTL,self.resume_tab]
         self.TL_tab.children = self.accordionTL
         [self.TL_tab.set_title(num,name) for num, name in enumerate(self.TL_names)]
         self._create_TL_tabs()
+
+        #self.vbox_tab_ERT.children = [self.TL_tab,self.resume_tab]
+
 
         def _observe_TL(change):
             print('obs TL')
@@ -1097,187 +1109,6 @@ class geo_metadata(object):
         return self.vbox_tab_ERT.children
 
 
-
-
-    def _add_children_TL_old(self): # add children tabs to existing root tab
-        '''Loop over all the childrens and find all widgets to recreate them with a new index corresponding to the time step'''
-        print('add children')
-        vboxTL_min_req = [] # minimum required metadata (1st accordion)
-        vboxTL_upload = [] # upload dataset  (2nd accordion)
-        vboxTL_upload_supp = [] # upload supplementary files (3rd accordion)
-
-
-        try:
-            print('Try')
-            print('len(self.accordionTL)' + str(len(self.accordionTL)))
-            #print('end try')
-
-        except:
-            print('except')
-            #self.accordionTL = [] # merge all accordion
-            self.accordionTL = [self.accordion_tab_ERT] # keep the background time
-            self.TL_names = ['Background Time'] # names for tabs
-
-        self.TL_tab = widgets.Tab() # create TL tabs
-
-
-        #print('.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v.v')
-        #print('len(self.accordionTL)' + str(len(self.accordionTL)))
-        #if len(self.accordionTL)>1:
-        #    self.deleteAll.layout.display = 'none'
-            #self.widget_nb_files_TL.layout.display = 'none'
-            #self.vbox_tab_ERT.children = [self.TL_tab]
-        #    self.widget_nb_files_TL.layout.visibility = 'hidden'
-
-        for steps in enumerate(np.arange(len(self.accordionTL),self.metadata['nb_of_files_TL'])): # tab nest = time lapse
-            
-            # initiate TL_all_widgets if note existing
-            #if hasattr(geo_metadata,'TL_all_widgets') is False:
-            #print('TL_all_widgets not existing')
-            TL_all_widgets = [[],[],[]] # TLminreq + upload dataset + upload supplementary files
-
-            self.TL_names.append('step'+ str(steps[1]))
-            #print('+++++++++++++')
-            #print('steps')
-            #print(steps[1])
-            #print('+++++++++++++')
-            #print(self.vbox_tab_ERT.children)
-            for i, child in enumerate(self.vbox_tab_ERT.children):
-                #print('self.vbox_tab_ERT.childre')
-                #print(i,child)
-                if i==0:
-                    if hasattr(child,'children'):
-                        for j, child_2nd in enumerate(child.children): # 1st/second accordion
-                            #print('lllllllllllllllllllllllllllll')
-                            #print('j=' +str(j)) # j = accordion level
-                            #print('TL_all_widgets[0]')
-                            #print(TL_all_widgets[0])
-                            #print('TL_all_widgets[1]')
-                            #print(TL_all_widgets[1])
-                            #print('lllllllllllllllllllllllllllll')
-                            #print('vvvvvvvvvvvvvv')
-                            #print('child2nd]')
-                            #print(j)
-                            #print('vvvvvvvvvvvvvv')
-                            if hasattr(child_2nd,'children'):
-                                for k, child_3rd in enumerate(child_2nd.children): # loop within accordion
-                                    if hasattr(child_3rd,'selected'): # identificator for fileupload type widget
-                                        tmpFileChooser = self.create_TL_widgets_upload(child_3rd,steps)
-                                        TL_all_widgets[j].append(tmpFileChooser)
-                                    else:
-                                        if hasattr(child_3rd,'children'):
-                                            for child_4th in child_3rd.children: 
-                                                #print('child_4th')
-                                                if hasattr(child_4th,'selected'):
-                                                    #print(child_4th)
-                                                    tmpFileChooser = self.create_TL_widgets_upload(child_4th,steps)
-                                                    TL_all_widgets[j].append(tmpFileChooser)
-                                                else:
-                                                    if hasattr(child_4th,'children'):
-                                                        for child_5th in child_4th.children:
-                                                            #print('vvvvv')
-                                                            #print(child_5th)
-                                                            if hasattr(child_5th,'selected'):
-                                                                tmpFileChooser = self.create_TL_widgets_upload(child_5th,steps)
-                                                                TL_all_widgets[j].append(tmpFileChooser)
-                                                            else: 
-                                                                if hasattr(child_5th,'children'):
-                                                                    #print('5')
-                                                                    for child_6th in child_5th.children: 
-                                                                        #print('66666')
-                                                                        #print(child_6th)
-                                                                        if hasattr(child_6th,'selected'):
-                                                                                tmpFileChooser = self.create_TL_widgets_upload(child_6th,steps)
-                                                                                TL_all_widgets[j].append(tmpFileChooser)
-                                                                        else:
-                                                                            if hasattr(child_6th,'children'):
-                                                                                for child_7th in child_6th.children: 
-                                                                                    new_widgets_TL = geo_metadata.create_TL_widgets(child_7th,steps)
-                                                                                    TL_all_widgets[j].append(new_widgets_TL)
-                                                                                #print('TLminreq' + str(TL_min_req))
-                                                                            else:
-                                                                                new_widgets_TL = geo_metadata.create_TL_widgets(child_6th,steps)
-                                                                                TL_all_widgets[j].append(new_widgets_TL)
-                                                                                #print('TLminreq' + str(TL_min_req))
-                                                                else:
-                                                                    new_widgets_TL = geo_metadata.create_TL_widgets(child_5th,steps)
-                                                                    TL_all_widgets[j].append(new_widgets_TL)
-                                                                    #print('TLminreq' + str(TL_min_req))    
-                                                    else:
-                                                        new_widgets_TL = geo_metadata.create_TL_widgets(child_4th,steps)
-                                                        TL_all_widgets[j].append(new_widgets_TL)
-                                                        #print('TL_all_widgets' + str(TL_all_widgets[j]))
-                                                        #print(TL_all_widgets[j])
-                                        else:
-                                            new_widgets_TL = geo_metadata.create_TL_widgets(child_3rd,steps)
-                                            TL_all_widgets[j].append(new_widgets_TL)
-                            else:
-                                new_widgets_TL = geo_metadata.create_TL_widgets(child_2nd,steps)
-                                TL_all_widgets[j].append(new_widgets_TL)
-                    else:
-                        new_widgets_TL = geo_metadata.create_TL_widgets(child,steps)
-                        TL_all_widgets[j].append(new_widgets_TL)
-
-            
-
-
-            TL_min_req = TL_all_widgets[0]
-            # remove TL options from min required metadata and move it to header TL
-            #if len(self.accordionTL)==0:
-            id_TL_settings = list(np.arange(6,11))
-
-            #if steps[1] == 0:
-            TL_options = TL_min_req[6:11]
-            TL_min_req = TL_min_req[0:6]        
-
-            TL_upload = TL_all_widgets[1]
-            TL_upload_supp = TL_all_widgets[2]
-
-            #print('TL_upload')
-            #print(TL_upload)
-            #print('mmmmmmmmmmmmmmmmmmmmmm')
-            #print(TL_min_req)
-            #print('mmmmmmmmmmmmmmmmmmmmmmmmm')
-            #print('iiiiiiiiiiiiiiiiiiiiiiiiiiiii')
-            #print(TL_upload)
-            #print('iiiiiiiiiiiiiiiiiiiiiiiiiiiii')
-            #print('ssssssssssssssssssssssssssssss')
-            #print(TL_upload_supp)
-            #print('sssssssssssssssssssssssssssss')
-            vboxTL_min_req.append(widgets.VBox(TL_min_req))
-            vboxTL_upload.append(widgets.VBox(TL_upload))
-            vboxTL_upload_supp.append(widgets.VBox(TL_upload_supp))
-
-            self.accordionTL.append(widgets.Accordion(children=[vboxTL_min_req[steps[0]],
-                                                            vboxTL_upload[steps[0]],
-                                                            vboxTL_upload_supp[steps[0]]],
-                                                            titles=('Min meta', 'Upload dataset', 'Supplementary material')))            
-            #accordionTL.append(widgets.Accordion(children=[vboxTL_min_req[steps[0]]]))
-            self.accordionTL[steps[1]].set_title(index=0, title='Min meta')
-            self.accordionTL[steps[1]].set_title(index=1, title='Upload')
-            self.accordionTL[steps[1]].set_title(index=2, title='Related data ressources')
-
-        #self.TL_head_control = self._add_TL_header_control()
-
-        self.TL_tab.children = self.accordionTL
-        [self.TL_tab.set_title(num,name) for num, name in enumerate(self.TL_names)]
-        self.widget_nb_files_TL.layout.visibility = 'visible'
-        self._create_TL_tabs()
-
-        def _observe_TL(change):
-            print('obs TL')
-            self._observe_TL_tab_widgets()
-            self._update_widget_export()
-
-
-        self.TL_tab.observe(_observe_TL,'selected_index')
-
-        #for child in self.TL_tab.children:
-        #    print(child)
-        #    print('***')
-        #    child.observe(_observe_TL,'selected_index')
-
-        return self.vbox_tab_ERT.children
 
     def _remove_children_TL(self): # add children tabs to existing root tab
         print('remove children')
@@ -2390,6 +2221,7 @@ class geo_metadata(object):
         return metadata_xml
 
     def _update_widget_export(self):
+        print('updata project export')
         if self.export_type.value == 'JSON':
             metadata_str = self.export_metadata_to_json_str()
         else:
@@ -2570,8 +2402,9 @@ class geo_metadata(object):
                      #print('***')
                     self._prepare_widgets()
                     self._add_children_TL()
-            
+                    self._observe_TL_tab_widgets() # before 
                     self._update_fields_values_TL()
+                    self._observe_TL_tab_widgets() # after
                     #self.widget_EM.append(self._timelapse_option())
 
                     #self._timelapse_option(reloadJSON=True)
@@ -2645,50 +2478,6 @@ class geo_metadata(object):
                             print(i[1],child.description)
                             child.value = mylist[child.description]
                         break
-
-
-
-
-
-
-    def _update_fields_values_TL2(self):
-        """Update all fields from TL"""
-
-        json_tmp = json.dumps(self.data_uploaded, indent=0)
-        mylist = json.loads(json_tmp)
-        for i in enumerate(mylist):
-            print(i)
-            for child in self.TL_tab.children: # second accordion
-                print('..................')
-                print(child)
-                if hasattr(child, 'description'):
-                    print(child.description)
-                    if i[1] in child2.description:
-                        child.value = mylist[child.description]
-                    else:
-                        if hasattr(child,'children'):
-                            for child2 in child.children:
-                                if hasattr(child2, 'description'):
-                                    print(child2.description)
-                                    print('------------')
-                                    if i[1] in child2.description:
-                                        child2.value = mylist[child2.description]
-                                    else:
-                                        if hasattr(child2,'children'):
-                                            for child3 in child2.children:
-                                                if hasattr(child3, 'description'):
-                                                    print(child3.description)
-                                                    print('*****')
-                                                    if i[1] in child3.description:
-                                                        child3.value = mylist[child3.description]
-                                                    else:
-                                                        if hasattr(child3,'children'):
-                                                            for child4 in child3.children:
-                                                                if hasattr(child4, 'description'):
-                                                                    print(child4.description)
-                                                                    print('+++++++')
-                                                                    if i[1] in child4.description:
-                                                                        child4.value = mylist[child4.description]
 
 
 
