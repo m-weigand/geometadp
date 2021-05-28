@@ -1,9 +1,11 @@
-{
+{   "report_title": "Short description of the dataset", 
+	"report_authors": "Author 1, Author 2", 
+	"owner": "Owner", 
+	"email": "myemail@gmail.com",
     "method": "Geoelectrical - ERT",
     "time_lapse": "True",
     "report_title": "",
     "nb_of_files_TL": "5",
-    "Instrument ERT0": "Syscal",
     "Instrument ERT1": "Syscal3",
     "Instrument ERT2": "Syscal",
     "Instrument ERT3": "Syscal",

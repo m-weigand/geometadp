@@ -23,14 +23,10 @@ import IPython
 # %% [markdown]
 # ## Full GUI
 
-# %% slideshow={"slide_type": "-"}
+# %%
 from lib.geometadp import md_manager
 obj = md_manager.geo_metadata()
 obj.manage()
-
-# %%
-
-# %%
 
 # %%
 

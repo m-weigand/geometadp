@@ -1,3 +1,4 @@
+ipytree
 ipyleaflet
 ipywidgets
 ipydatetime
