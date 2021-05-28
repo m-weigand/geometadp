@@ -31,7 +31,7 @@ import tempfile
 import shutil
 import os
 
-import exdir
+#import exdir
 
 #from lib.geometadp.EM import *
 
