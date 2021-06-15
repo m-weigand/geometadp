@@ -20,6 +20,10 @@ def restartkernel() :
 restartkernel()
 import IPython
 
+import os 
+os.chdir('../test_ERT_TL/')
+print(os.getcwd())
+
 # %% [markdown]
 # ## Full GUI
 
@@ -27,6 +31,7 @@ import IPython
 from lib.geometadp import md_manager
 obj = md_manager.geo_metadata()
 obj.manage()
+
 
 # %%
 

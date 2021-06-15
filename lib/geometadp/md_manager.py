@@ -163,9 +163,9 @@ class geo_metadata(object):
 
         # SURVEY: map
         self.widget_survey_map.append(self._widget_leaflet())
-        
+
         # widgets common to every methods
-        # Reasons for choice of survey technique  
+        # Reasons for choice of survey technique
         # Time lapse data flag
             # nb of files
             # date/time flag
@@ -189,8 +189,8 @@ class geo_metadata(object):
 
 
 
-        self.widget_ERT_upload.append(self._widget_upload_ERT_button()) 
-        self.widget_ERT_upload.append(self._display_head_table()) 
+        self.widget_ERT_upload.append(self._widget_upload_ERT_button())
+        self.widget_ERT_upload.append(self._display_head_table())
         self.widget_ERT_files.append(self._widgets_ERT_add_file())
 
 
@@ -221,7 +221,7 @@ class geo_metadata(object):
         self.widget_sampling.append(self._widgets_sampling_doc())
         self.widget_sampling.append(self._widget_free_sampling())
 
-        #%% DATA structure 
+        #%% DATA structure
         #self.widget_data_structure.append(self._widgets_dataset_structure_doc())
         #self.widget_data_structure.append(self._widget_upload_img_button())
         #self.widget_data_structure.append(self._widget_external_ressource_more(my_columns))
@@ -229,23 +229,24 @@ class geo_metadata(object):
         #self.widget_data_structure.append(self._widgets_related_external_resources_doc())
 
 
-        #%% ancillary DATA 
+        #%% ancillary DATA
         # self.widget_ancillary.data.append(self._widgets_figures())
 
-        #%% Upload 
+        #%% Upload
         self.widget_export.append(self._widget_export())
         self.widget_export.append(self._widget_download_buttons())
         #self.widget_export.append(self._display_Zip())
         #self.widget_export.append(self._update_display_Zip())
 
         #self.widget_files_tree.append(self._display_Zip())
-        self.widget_files_tree.append(self._display_dir_tree_old())
+        #self.widget_files_tree.append(self._display_dir_tree_old())
+        self.widget_files_tree.append(self._display_dir_tree())
 
 
         self.widget_export_HDF5.append(self._widgets_HDF5_doc())
 
 
-        #%% Import 
+        #%% Import
         self.widget_import.append(self._widget_upload_json())
         self.widget_import.append(self._widget_upload_button())
         #self.widget_import.append(self._widget_upload_from_db())
@@ -256,14 +257,14 @@ class geo_metadata(object):
         #%% About
         self.widget_about.append(_widget_about())
 
-   
+
     def _restart_project(self):
         '''
         Close all widgets - closes all widgets currently in the widget manager (which also closes them in the kernel)
         and restart the class
         '''
 
-        button_restart = widgets.Button(description="restart",button_style='warning')  
+        button_restart = widgets.Button(description="restart",button_style='warning')
 
         self.button_restart_box = widgets.HBox([button_restart])
         def _on_button_restart_click(change):
@@ -330,7 +331,7 @@ class geo_metadata(object):
 
             <h4> More on github </h4>
                 See About tab and github page for <a href="https://github.com/agrogeophy/geometadp" target="_blank">more informations.</a></p>
-            
+
             <hr style="height:5px;border-width:0;color:black;background-color:gray">
 
             ''')
@@ -426,7 +427,7 @@ class geo_metadata(object):
             description='Physical property investigated:',
             style=style,
             layout=layout)
-            
+
 
         @debounce(0.2)
         def _observe_variables(change):
@@ -451,7 +452,7 @@ class geo_metadata(object):
     #     return self.widget_location_bounds
 
     def _widget_upload_XY_button(self):
-       """Import XY file describing a 2d line prospection and plot it in the map"""     
+       """Import XY file describing a 2d line prospection and plot it in the map"""
 
        #self.widget_xy_coords_file
        self.widget_xy_coords_file = FileChooser(use_dir_icons=True)
@@ -464,7 +465,7 @@ class geo_metadata(object):
             #for name, file_info in self.widget_xy_coords_file.value.items():
 
             name = self.widget_xy_coords_file.selected # absolute path
-            path_abs , file = os.path.split(name) 
+            path_abs , file = os.path.split(name)
             level_dir = 'Site_metadata'
             dest_project_path = 'projectdir' + '\\' + self.metadata['method'] + '\\' + level_dir + '\\' +  file
 
@@ -475,7 +476,7 @@ class geo_metadata(object):
             self._update_widget_log('xy_file copied into zip')
 
             with open(name, newline='') as csvfile:
-                self.xy_data = pd.read_csv(csvfile,sep=';') 
+                self.xy_data = pd.read_csv(csvfile,sep=';')
 
             poly_line = Polyline(locations=self.xy_data.values.tolist(), color="red" , fill=False)
             self.m_top.add_layer(poly_line)
@@ -492,7 +493,7 @@ class geo_metadata(object):
        return vbox
 
     def _widget_leaflet(self):
-        ''' 
+        '''
         Create a leaflet map
         '''
 
@@ -504,10 +505,10 @@ class geo_metadata(object):
         center = [0, 0]
 
         self.m_top = Map(
-            zoom=-10, 
-            basemap=basemaps.Esri.WorldTopoMap, 
-            attribution_control=False, 
-            zoom_control=True, 
+            zoom=-10,
+            basemap=basemaps.Esri.WorldTopoMap,
+            attribution_control=False,
+            zoom_control=True,
             width='100%',
             fullscreenControl=True,
             # layout=Layout(height='800px'),
@@ -601,7 +602,7 @@ class geo_metadata(object):
 
 
             name = self.widget_xy_coords_file.selected # absolute path
-            path_abs , file = os.path.split(name) 
+            path_abs , file = os.path.split(name)
             level_dir = 'Site_metadata'
             dest_project_path = 'projectdir' + '\\' + self.metadata['method'] + '\\' + level_dir + '\\' +  file
 
@@ -617,7 +618,7 @@ class geo_metadata(object):
                                 hover_style={'color': 'white', 'dashArray': '0', 'fillOpacity': 0.5},
                             )
             self.m_top.add_layer(self.geo_json)
-                
+
             name = self.geojson_upload.selected
             # print('print to metadata')
             #for name, file_info in self.geojson_upload.value.items():
@@ -670,12 +671,13 @@ class geo_metadata(object):
                 'EM',
                 #'Seismic',
             ],
-            default='Geoelectrical - ERT',
+            value=None,
+            #default='Geoelectrical - ERT',
             description='Method:',
             disabled=False,
             style=style,
             layout=layout)
-        
+
 
         # set initial metadata
         self.metadata['method'] = ''
@@ -717,8 +719,8 @@ class geo_metadata(object):
             layout=layout)
 
             #print('test False')
-            button_True = widgets.Button(description="Time Lapse True")  
-            button_False = widgets.Button(description="False")  
+            button_True = widgets.Button(description="Time Lapse True")
+            button_False = widgets.Button(description="False")
 
             #self.widget_time_lapse = widgets.HBox([button_True,button_False])
             self.widget_time_lapse = widgets.HBox([self.widget_TL_choice])
@@ -740,7 +742,7 @@ class geo_metadata(object):
                 #vbox_TL.children = (*vbox_TL.children, vbox_create_TL_tabs)
                 #self._update_widget_export()
 
-            
+
             else:
             #def _on_button_False_click(change):
                 self.metadata['time_lapse'] = 'False'
@@ -760,7 +762,7 @@ class geo_metadata(object):
             vbox_time_interval = self._time_interval_TL()
             vbox_TL.children = (*vbox_TL.children, vbox_nb_of_files)
             vbox_TL.children = (*vbox_TL.children, vbox_time_interval)
-            self._update_widget_export()    
+            self._update_widget_export()
 
 
         # Put Dropdown and button together
@@ -779,7 +781,7 @@ class geo_metadata(object):
 
     def _nb_of_files_TL(self):
         self.widget_nb_files_TL = widgets.IntText(
-            description='Nb of steps',            
+            description='Nb of steps',
             style=style,
             layout=Layout(display='flex',flex_flow='row',justify_content='space-between',width='80%')
             )
@@ -834,8 +836,8 @@ class geo_metadata(object):
 
 
     def _timelapse_slider(self):
-        ''' 
-            Not implemented for the moment; 
+        '''
+            Not implemented for the moment;
             might be useful to add to header for selecting more quickly a TL tab
         '''
 
@@ -855,11 +857,11 @@ class geo_metadata(object):
 
         return vbox_TL_slider
 
-    def create_TL_widgets(child_to_create, steps):
-        ''' 
+    def create_TL_widgets(child_to_create, step):
+        '''
             call by _add_children_TL
             Make a copy with a new name of the main tab root widget
-            The new widget as a new description based on root description + steps nb
+            The new widget as a new description based on root description + step nb
             Value of root widget are automatically propagated into new one
         '''
 
@@ -869,23 +871,23 @@ class geo_metadata(object):
         #print(child_to_create._view_name)
 
         if child_to_create._view_name == 'TextView':
-            new_widgets_TL = widgets.Text(description=child_to_create.description + str(steps[1]),style=style,layout=layout)
+            new_widgets_TL = widgets.Text(description=child_to_create.description + str(step[1]),style=style,layout=layout)
 
         if child_to_create._view_name == 'RadioButtonsView':
             new_widgets_TL = widgets.RadioButtons(options=child_to_create.options,
                                                value=child_to_create.value,
-                                               description=child_to_create.description + str(steps[1]),
+                                               description=child_to_create.description + str(step[1]),
                                                disabled=False,style=style,layout=layout)
 
         if child_to_create._view_name == 'HTMLView':
-            new_widgets_TL = widgets.HTML(description=child_to_create.description + str(steps[1]),value=child_to_create.value,style=style,layout=layout)
+            new_widgets_TL = widgets.HTML(description=child_to_create.description + str(step[1]),value=child_to_create.value,style=style,layout=layout)
 
         if child_to_create._view_name == 'DropdownView':
             new_widgets_TL = widgets.Dropdown(layout=Layout(width='10%'), options=child_to_create.options, value=child_to_create.value,style=style)
 
         if child_to_create._view_name == 'ButtonView':
-            #new_widgets_TL = widgets.Button(description=child_to_create.description + str(steps[1]), 
-            #                                layout=child_to_create.layout, 
+            #new_widgets_TL = widgets.Button(description=child_to_create.description + str(step[1]),
+            #                                layout=child_to_create.layout,
             #                                style=child_to_create.style, icon=child_to_create.icon, button_style=child_to_create.button_style)
             new_widgets_TL = child_to_create # copy to keep button callback
 
@@ -903,40 +905,40 @@ class geo_metadata(object):
             new_widgets_TL = widgets.VBox()
 
         if child_to_create._view_name == 'IntSliderView':
-            new_widgets_TL = widgets.IntSlider(value=child_to_create.value, 
+            new_widgets_TL = widgets.IntSlider(value=child_to_create.value,
                                                 continuous_update=False, description='Choose the time step to display', max=3, min=1,style=style,layout=layout)
 
         if child_to_create._view_name == 'OutputView':
             new_widgets_TL = widgets.Output(layout=Layout(border='1px solid black'),style=style)
 
         if child_to_create._view_name == 'DatePickerView':
-            new_widgets_TL = widgets.DatePicker(value=child_to_create.value, description='Datetime of measurement' + str(steps[1]), 
+            new_widgets_TL = widgets.DatePicker(value=child_to_create.value, description='Datetime of measurement' + str(step[1]),
                 layout=Layout(width='auto'), disabled=False, style=style)
 
         if child_to_create._view_name == 'SelectView':
             new_widgets_TL = FileChooser(use_dir_icons=True)
 
         if child_to_create._view_name == 'TextareaView':
-            new_widgets_TL = Textarea(value=child_to_create.value, description='Short description of the dataset' + str(steps[1]), 
-                            layout=Layout(display='flex', flex_flow='row', 
-                            justify_content='space-between', width='80%'), 
+            new_widgets_TL = Textarea(value=child_to_create.value, description='Short description of the dataset' + str(step[1]),
+                            layout=Layout(display='flex', flex_flow='row',
+                            justify_content='space-between', width='80%'),
                             style=style)
         if child_to_create._view_name == 'AccordionView':
             new_widgets_TL = None
-            #self.TL_upload.append(FileChooser(use_dir_icons=True, title=child_to_create.title + str(steps[0])))
+            #self.TL_upload.append(FileChooser(use_dir_icons=True, title=child_to_create.title + str(step[0])))
 
         if child_to_create._view_name == 'IntTextView':
-            new_widgets_TL = IntText(value=child_to_create.value, description=child_to_create.description + str(steps[1]), 
-                            layout=Layout(display='flex', flex_flow='row', justify_content='space-between', width='80%'), 
+            new_widgets_TL = IntText(value=child_to_create.value, description=child_to_create.description + str(step[1]),
+                            layout=Layout(display='flex', flex_flow='row', justify_content='space-between', width='80%'),
                             style=style)
-            #self.TL_upload.append(FileChooser(use_dir_icons=True, title=child_to_create.title + str(steps[0])))
+            #self.TL_upload.append(FileChooser(use_dir_icons=True, title=child_to_create.title + str(step[0])))
         #if child_to_create._view_name == 'GridBoxView':
             #print(child_to_create)
 
         return new_widgets_TL
 
-    def create_TL_widgets_upload(self, child_to_create, steps):
-        newFileChooser = FileChooser(use_dir_icons=True, title=child_to_create.title + str(steps[1]))
+    def create_TL_widgets_upload(self, child_to_create, step):
+        newFileChooser = FileChooser(use_dir_icons=True, title=child_to_create.title + str(step[1]))
         #print('title upload')
         #print(child_to_create.title)
 
@@ -953,13 +955,13 @@ class geo_metadata(object):
             print('rmv')
             self.TL_tab.close
             #self.TL_tab.close
-            self.TL_tab =  widgets.VBox([self.accordion_tab_ERT])        
+            self.TL_tab =  widgets.VBox([self.accordion_tab_ERT])
             #self._create_TL_tabs()
             self.deleteAll.layout.display = 'none'
             self.vbox_tab_ERT.children = [self.TL_tab]
 
 
-        #widget_add_tab = widgets.IntText(description='Add new tab') 
+        #widget_add_tab = widgets.IntText(description='Add new tab')
         self.deleteAll = widgets.Button(icon="trash", description='Remove all TL tabs',button_style='danger')
         #deleteOne = widgets.Button(icon="trash", description='Remove selected TL tab')
         self.deleteAll.on_click(rmv_children_all)
@@ -1003,57 +1005,74 @@ class geo_metadata(object):
                 child_upload_supp = child.children[2]
 
 
-        def test_create(vec_append,child,steps):
+        def test_create(vec_append,child,step):
+            """Short summary.
+
+            Parameters
+            ----------
+            vec_append : type
+                Description of parameter `vec_append`.
+            child : type
+                Description of parameter `child`.
+            step : type
+                Description of parameter `step`.
+
+            Returns
+            -------
+            type
+                Description of returned object.
+
+            """
             #print('-------')
             #print(child)
-            if hasattr(child,'selected'):
-                tmpFileChooser = self.create_TL_widgets_upload(child,steps)
+            if hasattr(child,'selected'): # this is a upload widget
+                tmpFileChooser = self.create_TL_widgets_upload(child,step)
                 vec_append.append(tmpFileChooser)
-            elif hasattr(child,'description'):
-                new_widgets_TL = geo_metadata.create_TL_widgets(child,steps)
+            elif hasattr(child,'description'): # this is other type widgets
+                new_widgets_TL = geo_metadata.create_TL_widgets(child,step)
                 vec_append.append(new_widgets_TL)
 
             return vec_append
 
-        for steps in enumerate(np.arange(len(self.accordionTL),self.metadata['nb_of_files_TL'])): # tab nest = time lapse
-            #print('stepnb: ' + str(steps[1]))
-            self.TL_names.append('step'+ str(steps[1]))
+        for step in enumerate(np.arange(len(self.accordionTL),self.metadata['nb_of_files_TL'])): # tab nest = time lapse
+            #print('stepnb: ' + str(step[1]))
+            self.TL_names.append('step'+ str(step[1]))
 
-            TL_min_req = [] 
-            TL_upload = [] 
-            TL_upload_supp = [] 
+            TL_min_req = []
+            TL_upload = []
+            TL_upload_supp = []
 
             # Loop over widgets of min req
             for i, child in enumerate(child_min_req.children):
                 if hasattr(child,'selected'):
-                    tmpFileChooser = self.create_TL_widgets_upload(child,steps)
+                    tmpFileChooser = self.create_TL_widgets_upload(child,step)
                     TL_min_req.append(tmpFileChooser)
                 elif hasattr(child,'description'):
-                    new_widgets_TL = geo_metadata.create_TL_widgets(child,steps)
+                    new_widgets_TL = geo_metadata.create_TL_widgets(child,step)
                     TL_min_req.append(new_widgets_TL)
 
             # Loop over widgets of upload
             for i, child in enumerate(child_upload.children):
-                test_create(TL_upload,child,steps)
+                test_create(TL_upload,child,step)
                 if hasattr(child,'children'):
                     for child2 in child.children:
-                        test_create(TL_upload,child2,steps)
+                        test_create(TL_upload,child2,step)
                         if hasattr(child2,'children'):
                             for child3 in child2.children:
-                                test_create(TL_upload,child3,steps)
+                                test_create(TL_upload,child3,step)
 
             # Loop over widgets of upload_supp
             for i, child in enumerate(child_upload_supp.children):
-                test_create(TL_upload_supp,child,steps)
+                test_create(TL_upload_supp,child,step)
                 if hasattr(child,'children'):
                     for child2 in child.children:
-                        test_create(TL_upload_supp,child2,steps)
+                        test_create(TL_upload_supp,child2,step)
                         if hasattr(child2,'children'):
                             for child3 in child2.children:
-                                test_create(TL_upload_supp,child3,steps)
+                                test_create(TL_upload_supp,child3,step)
                                 if hasattr(child3,'children'):
                                     for child4 in child3.children:
-                                        test_create(TL_upload_supp,child4,steps)
+                                        test_create(TL_upload_supp,child4,step)
 
 
             vboxTL_min_req.append(widgets.VBox(TL_min_req))
@@ -1063,13 +1082,13 @@ class geo_metadata(object):
 
 
 
-            self.accordionTL.append(widgets.Accordion(children=[vboxTL_min_req[steps[0]],
-                                                                vboxTL_upload[steps[0]],
-                                                                vboxTL_upload_supp[steps[0]]],
-                                                            titles=('Min meta', 'Upload dataset', 'Supplementary material')))            
-            self.accordionTL[steps[1]].set_title(index=0, title='Min meta')
-            self.accordionTL[steps[1]].set_title(index=1, title='Upload')
-            self.accordionTL[steps[1]].set_title(index=2, title='Related data ressources')
+            self.accordionTL.append(widgets.Accordion(children=[vboxTL_min_req[step[0]],
+                                                                vboxTL_upload[step[0]],
+                                                                vboxTL_upload_supp[step[0]]],
+                                                            titles=('Min meta', 'Upload dataset', 'Supplementary material')))
+            self.accordionTL[step[1]].set_title(index=0, title='Min meta')
+            self.accordionTL[step[1]].set_title(index=1, title='Upload')
+            self.accordionTL[step[1]].set_title(index=2, title='Related data ressources')
 
         #self.TL_head_control = self._add_TL_header_control() # To implement, header control for very large time lapse dataset (including a slider to select quickly)
         intro_tl_resume = widgets.HTML('''
@@ -1083,7 +1102,7 @@ class geo_metadata(object):
         #self.resume_tab.children = self.vboxTL_resume
         #[self.resume_tab.set_title(num,name) for num, name in enumerate(['resume'])]
 
-        
+
 
         #self.TL_tab.children = [self.accordionTL,self.resume_tab]
         self.TL_tab.children = self.accordionTL
@@ -1094,8 +1113,9 @@ class geo_metadata(object):
 
 
         def _observe_TL(change):
-            print('obs TL')
-            self._observe_TL_tab_widgets()
+            print('obs TL --> switch to new TL tab observed')
+            step_tab = change['new']
+            self._observe_TL_tab_widgets(step_tab)
             self._update_widget_export()
 
 
@@ -1123,7 +1143,8 @@ class geo_metadata(object):
     def _widget_measurement_type(self):
         self.widget_measurement_type = widgets.RadioButtons(
             options=['Laboratory', 'Field'],
-            default='Field',
+            #default='Field',
+            value=None,
             description='Measurement type:',
             disabled=False,
             style=style,
@@ -1201,12 +1222,13 @@ class geo_metadata(object):
     def _widget_elec_config(self):
         self.widget_elec_config = widgets.RadioButtons(
             options=['1D', '2D','3D'],
-            default='1D',
+            #default='1D',
+            value=None,
             description='Electrode configuration',
             disabled=False,
             style=style,
             layout=layout)
-        
+
 
         #self.widget_elec_config.layout.display   = 'none'
         #if  self.metadata['method'] == 'Geoelectrical - ERT':
@@ -1247,7 +1269,7 @@ class geo_metadata(object):
             new_widget.observe(_observe_filter)
 
 
-        # Define Dropdown 
+        # Define Dropdown
         select_definition = widgets.Dropdown(options=my_columns, layout=Layout(width='10%'))
 
         button = widgets.Button(description="Add",
@@ -1268,7 +1290,8 @@ class geo_metadata(object):
     def _widget_elec_seq(self):
         self.widget_elec_seq = widgets.RadioButtons(
             options=['Wenner', 'WS','user defined'],
-            default='WS',
+            #default='WS',
+            value=None,
             description='Electrode sequence',
             disabled=False,
             style=style,
@@ -1327,33 +1350,57 @@ class geo_metadata(object):
         return vbox
 
 
-    def REDA_explore_meta(self):
+    def REDA_explore_meta(self,name,step_tab):
 
         print('REDA harvester')
-        name = self.ERT_upload.selected
-        print(name)
-        print(self.ERT_upload.selected)
-        self._add_to_Zip(self.ERT_upload.selected, target_dir='', level_dir='')
+
+        #step_tab:
+        #    name = self.ERT_upload.selected
+        #else:
+        #    name =
+        path_abs , file = os.path.split(name)
+        level_dir = 'Data'
+        dest_project_path = 'projectdir' + '\\' + self.metadata['method'] + '\\' + level_dir + '\\' +  file
+
+
+        #for name, file_info in self.fig_upload.value.items():
+        #self._add_to_Zip(name,target_dir=self.metadata['method'],level_dir=level_dir)
+        #self._add_to_Exdir(name, target_dir=self.metadata['method'], level_dir='Figures')
+        if len(self.metadata['method'])<1:
+            self._update_widget_log('<p style="color:red;">No method defined; impossible to copy file in the prjectdir hierarchical tree</p>')
+        else:
+            self._add_to_dir(name, target_dir=self.metadata['method'], level_dir=level_dir)
+            self._update_widget_log(name + ' ERT file imported with REDA;')
+            self._update_widget_log(name + 'file copied into: ' + self.metadata['method'] + '/' + level_dir)
+
+        #self._add_to_Zip(self.ERT_upload.selected, target_dir='', level_dir='')
         #self._add_to_Exdir(name, target_dir=self.metadata['method'], level_dir='Data')
         #self._add_to_dir(name, target_dir=self.metadata['method'], level_dir='Data')
-        self._add_to_dir(name, target_dir='Geoelectrical - ERT', level_dir='Data')
-        self._update_widget_log('ERT file imported with REDA')
-        self.metadata['ERT_filename_metadata'] = name
+        self.metadata['ERT_filename' + str(step_tab)] = dest_project_path
+
         self.ert = reda.ERT()
-        self.ert.import_syscal_bin(name)
+
+        if 'bin' in file:
+            self.ert.import_syscal_bin(name)
+        elif 'dat' in file:
+            self.ert.import_pygimli(name)
         #self.metadata['print_log_REDA'] =   ert.print_log()
         self.metadata['nb_abmn'] =   str(len(self.ert.data))
-        print(str(len(self.ert.data)))
-        if self.ert.data['chargeability'][0] != 0:
-            self.metadata['chargeability'] =   True
+        #print(str(len(self.ert.data)))
+        if hasattr(self.ert.data, 'chargeability'):
+            self.metadata['chargeability'+ str(step_tab)] =   True
         else:
-            self.metadata['chargeability'] =   False
+            self.metadata['chargeability'+ str(step_tab)] =   False
+
+        if len(self.ert.electrode_positions)>0:
+            #print(self.ert.electrode_positions)
+            self._update_widget_log('electrode positions detected from file upload')
 
         self._update_widget_export()
         #self._parse_json() # parse to metadata for export
         #self._update_fields_values(['print_log_REDA']) # parse to widgets to replace initial value
-        self._update_fields_values(['nb_abmn']) # parse to widgets to replace initial value
-        self._update_fields_values(['chargeability']) # parse to widgets to replace initial value
+        self._update_fields_values(['nb_abmn'+ str(step_tab)]) # parse to widgets to replace initial value
+        self._update_fields_values(['chargeability'+ str(step_tab)]) # parse to widgets to replace initial value
 
 
     def _widget_upload_ERT_button(self):
@@ -1371,7 +1418,7 @@ class geo_metadata(object):
        vbox = widgets.VBox([vbox_doc,self.ERT_upload])
 
        def on_upload_ERT_change():
-            self.REDA_explore_meta()
+            self.REDA_explore_meta(self.ERT_upload.selected,'_background')
 
             #vbox.children = (*vbox.children, self._print_log_REDA())
             vbox.children = (*vbox.children, self._nb_of_ambn())
@@ -1391,7 +1438,7 @@ class geo_metadata(object):
 
     def _display_head_table(self):
 
-        button_display_table = widgets.Button(description="Show data table",button_style='info')  
+        button_display_table = widgets.Button(description="Show data table",button_style='info')
         delete = widgets.Button(icon="trash")
         out = widgets.Output(layout={'border': '1px solid black'})
         delete.parent = out
@@ -1626,7 +1673,7 @@ class geo_metadata(object):
        def on_upload_change(change):
             #for name, file_info in self.EM_upload.value.items():
             name = self.widget_em_file.selected
-            path_abs , file = os.path.split(name) 
+            path_abs , file = os.path.split(name)
             level_dir = 'Data'
             dest_project_path = 'projectdir' + '\\' + self.metadata['method'] + '\\' + level_dir + '\\' +  file
 
@@ -1636,7 +1683,7 @@ class geo_metadata(object):
             self._add_to_Zip(self.widget_em_file.selected, target_dir= self.metadata['method'], level_dir='Emagpy_import')
             #self._add_to_Exdir(name, target_dir=self.metadata['method'], level_dir='Data')
             self._add_to_dir(name, target_dir=self.metadata['method'], level_dir=level_dir)
-            
+
             self._update_widget_log('EM file imported for automatic metadata extraction')
             self.metadata['em_file'] = dest_project_path
 
@@ -1784,7 +1831,7 @@ class geo_metadata(object):
         title = widgets.HTML('''
             <h3> Sampling metadata </h3>
             <hr style="height:1px;border-width:0;color:black;background-color:gray">
-            Please refer to the <a href="https://agrogeophy.github.io/catalog/schema_documentation.html#table-sampling">online sampling metadata documentation </a>      
+            Please refer to the <a href="https://agrogeophy.github.io/catalog/schema_documentation.html#table-sampling">online sampling metadata documentation </a>
              ''')
         vbox = widgets.VBox([title])
         return vbox
@@ -1809,7 +1856,7 @@ class geo_metadata(object):
         title = widgets.HTML('''
             <h3> Dataset structure </h3>
             <hr style="height:1px;border-width:0;color:black;background-color:gray">
-            Please refer to the <a href="https://agrogeophy.github.io/datasets/data-management.html#workflow-for-preparing-dataset">online guidelines to structure a dataset </a>      
+            Please refer to the <a href="https://agrogeophy.github.io/datasets/data-management.html#workflow-for-preparing-dataset">online guidelines to structure a dataset </a>
              ''')
         vbox = widgets.VBox([title])
 
@@ -1839,7 +1886,7 @@ class geo_metadata(object):
             # self._update_fields_values() # parse to widgets to replace initial valus
 
     def _widget_upload_rawdata_button(self,method_str):
-       """Import EM dataset """
+       """Import raw dataset file """
 
 
        #self.fig_upload = widgets.FileUpload(
@@ -1859,7 +1906,7 @@ class geo_metadata(object):
             #self._add_to_Exdir(name, target_dir=self.metadata['method'], level_dir='Figures')
             self._add_to_dir(name, target_dir=self.metadata['method'], level_dir='RAW')
             self._update_widget_log(name + 'file copied into: ' + method_str + '/' + 'RAW zip folder')
-            self.metadata['external_ressource_' + method_str + '_fig'] = name
+            self.metadata['external_ressource_' + method_str + '_RAW'] = name
             self._update_widget_export()
 
             # self._parse_json() # parse to metadata for export
@@ -1868,8 +1915,32 @@ class geo_metadata(object):
        #self.fig_upload.observe(on_upload_change, names='_counter')
        self.rawdata_upload.register_callback(on_upload_change)
 
-
        return vbox
+
+
+    def actions_upload_supp_data(self,name,step_tab,level_dir):
+
+        print('actions_upload_supp_data')
+
+        path_abs , file = os.path.split(name)
+        dest_project_path = 'projectdir' + '\\' + self.metadata['method'] + '\\' + level_dir + '\\' +  file
+
+
+        #for name, file_info in self.fig_upload.value.items():
+        #self._add_to_Zip(name,target_dir=self.metadata['method'],level_dir=level_dir)
+        #self._add_to_Exdir(name, target_dir=self.metadata['method'], level_dir='Figures')
+        if len(self.metadata['method'])<1:
+            self._update_widget_log('<p style="color:red;">No method defined; impossible to copy file in the prjectdir hierarchical tree</p>')
+        else:
+            self._add_to_dir(name, target_dir=self.metadata['method'], level_dir=level_dir)
+            self._update_widget_log(name + str(step_tab) + ' file uploaded;')
+            self._update_widget_log(name + str(step_tab) + 'file copied into: ' + self.metadata['method'] + '/' + level_dir)
+
+        #self._add_to_Zip(self.ERT_upload.selected, target_dir='', level_dir='')
+        #self._add_to_Exdir(name, target_dir=self.metadata['method'], level_dir='Data')
+        #self._add_to_dir(name, target_dir=self.metadata['method'], level_dir='Data')
+        self.metadata[level_dir + '_filename' + str(step_tab)] = dest_project_path
+        self._update_widget_export()
 
 
     def _widget_add_external_ressource(self, my_columns, method_str):
@@ -1918,10 +1989,10 @@ class geo_metadata(object):
 
 
 
-        # Define Dropdown 
+        # Define Dropdown
         select_definition = widgets.Dropdown(options=my_columns, layout=Layout(width='10%'))
 
-        button = widgets.Button(description="Add")  
+        button = widgets.Button(description="Add")
 
         # Define button and event
         button.on_click(generate_filter)
@@ -1969,13 +2040,13 @@ class geo_metadata(object):
 
 
             name = self.fig_upload.selected
-            path_abs , file = os.path.split(name) 
+            path_abs , file = os.path.split(name)
             level_dir = 'Postprocessed'
             dest_project_path = 'projectdir' + '\\' + self.metadata['method'] + '\\' + level_dir + '\\' +  file
 
 
             #for name, file_info in self.fig_upload.value.items():
-            self._add_to_Zip(name,target_dir=self.metadata['method'],level_dir=level_dir)
+            #self._add_to_Zip(name,target_dir=self.metadata['method'],level_dir=level_dir)
             #self._add_to_Exdir(name, target_dir=self.metadata['method'], level_dir='Figures')
             self._add_to_dir(name, target_dir=self.metadata['method'], level_dir=level_dir)
             self._update_widget_log(name + 'file copied into: ' + method_str + '/' + 'Postprocessed folder')
@@ -2040,14 +2111,12 @@ class geo_metadata(object):
        return vbox
 
 
-    def _observe_TL_tab_widgets(self):
+    def _observe_TL_tab_widgets(self,step_tab=[]):
         ''' apply observe/onclick/callback to TL widgets'''
 
         def on_upload_TL_change(chooser):
             ''' Apply callback to the chooser '''
             print('Apply callback to the chooser')
-
-            
             #self._add_to_Zip(self.tmp_name_upload,target_dir=self.metadata['method'],level_dir='scripts')
             #self._add_to_Exdir(name, target_dir=self.metadata['method'], level_dir='Scripts')
             name =  chooser.selected
@@ -2055,21 +2124,25 @@ class geo_metadata(object):
             #self._update_widget_log(name + 'file copied into: ' + self.metadata['method'] + '/' + str(chooser.title))
             #self.metadata[chooser.title] = name
             #self._update_widget_export()
+            print(chooser)
+            if 'Upload raw data' in chooser.title:
+                #print('ERT Upload with REDA child_to_create')
+                level_dir= 'RAW'
+                self.actions_upload_supp_data(name,step_tab,level_dir)
 
-            if 'ERT Upload with REDA' in chooser.selected:
+            if 'ERT Upload with REDA' in chooser.title:
                 print('ERT Upload with REDA child_to_create')
-                self.REDA_explore_meta()
-
+                self.REDA_explore_meta(name,step_tab)
             return
+
 
 
         def on_click_TL_change(change):
             ''' Apply on_click to the button'''
             print('Apply on_click to the button')
-
             #self._add_to_Zip(self.tmp_name_upload,target_dir=self.metadata['method'],level_dir='scripts')
             #self._add_to_Exdir(name, target_dir=self.metadata['method'], level_dir='Scripts')
-            print(change)
+            #print(change)
             if 'Show on map lapse' in change.description:
                 print('Show on map lapse callback')
                 out = widgets.Output(description='out space map')
@@ -2077,7 +2150,6 @@ class geo_metadata(object):
                 display(self.m_top)
             if 'Show data table' in change['owner'].description:
                 print('show data table')
-
             return
 
 
@@ -2085,21 +2157,23 @@ class geo_metadata(object):
         def on_TL_tab_change(change):
             ''' Apply observe to the widget'''
             print('Apply observe to the widget')
-
             try:
                 print(change['owner'].description)
+                print('+++++')
             except:
                 pass
-
-            try: 
+            try:
                 print(change['owner'].description)
+                print('-------')
                 if 'Date' in change['owner'].description:
                     print('change to date format')
                     self.metadata[change['owner'].description] = change['owner'].value.isoformat()
                 else:
                     self.metadata[change['owner'].description] = change['owner'].value
+                    print(self.metadata[change['owner'].description])
                     self._update_widget_export()
             except:
+                print('no sucess')
                 pass
 
 
@@ -2109,8 +2183,8 @@ class geo_metadata(object):
 
             if hasattr(child,'children'):
                 for child_2 in child.children: # 1st/second accordion
-                    print('+++++')
-                    print(child_2)
+                    #print('+++++')
+                    #print(child_2)
                     if hasattr(child_2, 'title'):
                         child_2.register_callback(on_upload_TL_change)
                     elif hasattr(child_2, 'button_style'):
@@ -2120,8 +2194,8 @@ class geo_metadata(object):
 
                     if hasattr(child_2,'children'):
                         for child_3 in child_2.children: # 1st/second accordion
-                            print('------')
-                            print(child_3)
+                            #print('------')
+                            #print(child_3)
                             if hasattr(child_3, 'title'):
                                 #print(child_3)
                                 child_3.register_callback(on_upload_TL_change)
@@ -2137,7 +2211,7 @@ class geo_metadata(object):
                                 if hasattr(child_4, 'title'):
                                     child_4.register_callback(on_upload_TL_change)
                                 elif hasattr(child_4, 'button_style'):
-                                    child_4.on_click(on_click_TL_change)                                
+                                    child_4.on_click(on_click_TL_change)
                                 else:
                                     child_4.observe(on_TL_tab_change,'value')
 
@@ -2148,13 +2222,13 @@ class geo_metadata(object):
                                     if hasattr(child_5, 'title'):
                                         child_5.register_callback(on_upload_TL_change)
                                     elif hasattr(child_5, 'button_style'):
-                                        child_5.on_click(on_click_TL_change)   
+                                        child_5.on_click(on_click_TL_change)
                                     else:
                                         child_5.observe(on_TL_tab_change,'value')
 
             else:
                 if hasattr(child, 'title'):
-                    child.register_callback(on_upload_TL_change)                
+                    child.register_callback(on_upload_TL_change)
                 if hasattr(child, 'button_style'):
                     child.on_click(on_click_TL_change)
                 else:
@@ -2170,13 +2244,13 @@ class geo_metadata(object):
         # if ERT tab
         #self.vbox_tab_ERT.children = [self.TL_head_control,self.TL_tab]
         self.vbox_tab_ERT.children = [self.TL_tab]
-        
+
         # if EM tab
         #self.vbox_tab_EM.children = [self.TL_head_control,self.TL_tab]
 
 
         return self.vbox_tab_ERT
-       
+
     def _widget_export(self):
         """Preview of metadata export"""
 
@@ -2221,7 +2295,7 @@ class geo_metadata(object):
         return metadata_xml
 
     def _update_widget_export(self):
-        print('updata project export')
+        #print('update project export')
         if self.export_type.value == 'JSON':
             metadata_str = self.export_metadata_to_json_str()
         else:
@@ -2234,7 +2308,7 @@ class geo_metadata(object):
 
     def _widgets_HDF5_doc(self):
         title = widgets.HTML('''
-            <h4> HDF5 data container </h4>
+            <h4> HDF5 data container (Not yet implemented) </h4>
             <hr style="height:1px;border-width:0;color:black;background-color:gray">
              ''')
 
@@ -2251,7 +2325,7 @@ class geo_metadata(object):
             '''<h3>Upload pre-existing metadata json file<h3/>
                <hr style="height:1px;border-width:0;color:black;background-color:gray">
                 <h4> Tips </h4>
-                <p> Keep track of your datasets structure/metadata during every stages i.e. acquisition/processing/publication: 
+                <p> Keep track of your datasets structure/metadata during every stages i.e. acquisition/processing/publication:
                 Use the import/export tabs respectively to import a pre-existing JSON file and save your work <p>
                 <h4> Metadata templates </h4>
                 <p> Metadata templates for generic survey to upload are available on the github page.
@@ -2304,7 +2378,7 @@ class geo_metadata(object):
             with out:
                 display(self.ert.data)
 
-        #output_db = 
+        #output_db =
         #display(df)
         vbox = widgets.VBox([title, text])
         return vbox
@@ -2333,7 +2407,6 @@ class geo_metadata(object):
             with open(name) as json_file:
                     self.data_uploaded = json.load(json_file)
 
-            self._parse_json()
             self._update_fields_values_JSON()
 
        self.json_upload.register_callback(on_upload_change)
@@ -2346,7 +2419,7 @@ class geo_metadata(object):
         for i in enumerate(metadata_key):
             if hasattr(self, 'widget_' + i[1]):
                widget2fill = eval('self.widget_' + i[1])
-               if "date" in i[1]: 
+               if "date" in i[1]:
                     date_time_obj = datetime.strptime(self.metadata[i[1]],  "%Y-%m-%d")
                     widget2fill.value = date_time_obj
                else:
@@ -2365,7 +2438,7 @@ class geo_metadata(object):
 
 
     def _update_fields_values_JSON(self):
-        """Update all fields from uploaded JSON"""
+        """Update all fields after uploading JSON file"""
         json_tmp = json.dumps(self.data_uploaded, indent=0)
         print(json_tmp)
         mylist = json.loads(json_tmp)
@@ -2373,12 +2446,12 @@ class geo_metadata(object):
             print(i)
             if hasattr(self, 'widget_' + i[1]): # existing widget
                widget2fill = eval('self.widget_' + i[1])
-               if "date" in i[1]: 
+               if "date" in i[1]:
                     date_time_obj = datetime.strptime(self.metadata[i[1]],  "%Y-%m-%d")
                     widget2fill.value = date_time_obj
                elif "file" in i[1]:
-                    path , file = os.path.split(self.metadata[i[1]]) 
-                    widget2fill.reset(path=path, filename=file)                  
+                    path , file = os.path.split(self.metadata[i[1]])
+                    widget2fill.reset(path=path, filename=file)
                else:
                     try:
                         widget2fill.value = self.metadata[i[1]]
@@ -2402,11 +2475,12 @@ class geo_metadata(object):
                      #print('***')
                     self._prepare_widgets()
                     self._add_children_TL()
-                    self._observe_TL_tab_widgets() # before 
+                    self._observe_TL_tab_widgets() # before
                     self._update_fields_values_TL()
                     self._observe_TL_tab_widgets() # after
                     #self.widget_EM.append(self._timelapse_option())
-
+                    self._update_widget_export() # ???
+                    #self._update_widget_export() # ???
                     #self._timelapse_option(reloadJSON=True)
                 #print('eval')
                 #print('self._' + i[1] + '()')
@@ -2424,23 +2498,23 @@ class geo_metadata(object):
             for child in self.TL_tab.children:
                 if hasattr(child,'children'):
                     for child_2 in child.children: # 1st/second accordion
-                        print('+++++')
-                        print(child_2)
+                        #print('+++++')
+                        #print(child_2)
                         if hasattr(child_2,'description'):
                             if i[1] in child_2.description:
-                                print('!.....!')
-                                print(i[1],child_2nd.description)
+                                #print('!.....!')
+                                #print(i[1],child_2nd.description)
                                 child_2.value = mylist[child_2.description]
                             break
 
                         if hasattr(child_2,'children'):
                             for child_3 in child_2.children: # 1st/second accordion
-                                print('------')
-                                print(child_3)
+                                #print('------')
+                                #print(child_3)
                                 if hasattr(child_3,'description'):
                                     if i[1] in child_3.description:
-                                        print('!.....!')
-                                        print(i[1],child_3.description)
+                                        #print('!.....!')
+                                        #print(i[1],child_3.description)
                                         child_3.value = mylist[child_3.description]
                                     break
 
@@ -2448,8 +2522,8 @@ class geo_metadata(object):
                                 for child_4 in child_3.children: # 1st/second accordion
                                     if hasattr(child_4,'description'):
                                         if i[1] in child_4.description:
-                                            print('!.....!')
-                                            print(i[1],child_4.description)
+                                            #print('!.....!')
+                                            #print(i[1],child_4.description)
                                             child_4.value = mylist[child_4.description]
                                         break
 
@@ -2457,8 +2531,8 @@ class geo_metadata(object):
                                     for child_5 in child_4.children: # 1st/second accordion
                                         if hasattr(child_5,'description'):
                                             if i[1] in child_5.description:
-                                                print('!.....!')
-                                                print(i[1],child_5.description)
+                                                #print('!.....!')
+                                                #print(i[1],child_5.description)
                                                 child_5.value = mylist[child_5.description]
                                             break
 
@@ -2466,30 +2540,36 @@ class geo_metadata(object):
                                         for child_6 in child_5.children: # 1st/second accordion
                                             if hasattr(child_6,'description'):
                                                 if i[1] in child_6.description:
-                                                    print('!.....!')
-                                                    print(i[1],child_6.description)
+                                                    #print('!.....!')
+                                                    #print(i[1],child_6.description)
                                                     child_6.value = mylist[child_6.description]
                                                 break
 
                 else:
                     if hasattr(child,'description'):
                         if i[1] in child.description:
-                            print('!.....!')
-                            print(i[1],child.description)
+                            #print('!.....!')
+                            #print(i[1],child.description)
                             child.value = mylist[child.description]
                         break
 
 
 
 
-    def _parse_json(self):
+    def _parse_json_old(self):
         """Fill out metadata container (for export)"""
         for i in enumerate(self.data_uploaded):
             if hasattr(self, 'widget_' + i[1]):
                 self.metadata[i[1]] = self.data_uploaded[i[1]]
             else:
-                warning = 'metadata not matching:' + str(i[1])
+                warning = '<p style="color:red;">metadata not matching: + str(i[1])</p>'
                 self._update_widget_log(warning)
+
+    #def _parse_json(self,metadata_key):
+    #    """Fill out metadata container (for export)"""
+    #        self.metadata[metadata_key] =
+            #warning = '<p style="color:red;">metadata not matching: + str(i[1])</p>'
+            #self._update_widget_log(warning)
 
 
     def _widget_download_buttons(self):
@@ -2499,8 +2579,8 @@ class geo_metadata(object):
                 value=False,
                 description='Save',
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='Save',
+                button_style='danger', # 'success', 'info', 'warning', 'danger' or ''
+                tooltip='This action will overwrite the json file if already existing',
                 icon='save' # (FontAwesome names without the `fa-` prefix)
             )
 
@@ -2509,8 +2589,11 @@ class geo_metadata(object):
 
 
         vbox_button = widgets.VBox([self.download])
-        vbox_file_save_name = widgets.Text(description='save name',value= 'json_backup.json') # Value from the user
-        vbox = widgets.HBox([vbox_button,vbox_file_save_name])
+        json_backup_file = widgets.Text(description='backup name',
+                                        value= 'backup' +
+                                                datetime.now().strftime("%d%m%Y_%H%M%S")
+                                                + '.json') # Value from the user
+        vbox = widgets.HBox([vbox_button,json_backup_file])
 
 
         def on_download_change(change): # read an display
@@ -2521,15 +2604,20 @@ class geo_metadata(object):
             #            value="<a href={code}>link2file to click</a>".format(code=link2file),
             #            description='Some HTML',
             # )
-            with open(vbox_file_save_name.value, 'w') as outfile:
+            with open(json_backup_file.value, 'w') as outfile:
                 json.dump(self.metadata, outfile, indent=4)
+            if not os.path.exists(self.projectdir_path + '\projectdir'):
+                os.makedirs(self.projectdir_path + '\projectdir')
 
-                #os.makedirs('projectdir', exist_ok=True)
+            #shutil.move(vbox_file_save_name.value,'projectdir')
+            shutil.move(os.path.join(self.projectdir_path, json_backup_file.value),
+            os.path.join(self.projectdir_path + '\projectdir', json_backup_file.value))
 
-                shutil.move(vbox_file_save_name.value,'projectdir')
-                #self._add_to_Zip(vbox_file_save_name.value,'','')
-                #self._add_to_Exdir(vbox_file_save_name.value,'','')
-                #self._add_to_dir(vbox_file_save_name.value,'','')
+            self._update_widget_log(json_backup_file.value + ' file copied into projectdir folder')
+            self._display_dir_tree()
+            #self._add_to_Zip(vbox_file_save_name.value,'','')
+            #self._add_to_Exdir(vbox_file_save_name.value,'','')
+            #self._add_to_dir(vbox_file_save_name.value,'','')
 
 
              #vbox_link = widgets.HBox([vbox,linkwidget])
@@ -2543,12 +2631,14 @@ class geo_metadata(object):
         """_add_to_dir
         """
         if not os.path.exists('projectdir'):
-            os.makedirs('projectdir')   
+            os.makedirs('projectdir')
 
         dest_fpath = 'projectdir' + '\\' + target_dir + '\\' + level_dir + '\\' +  os.path.basename(src_fpath)
 
         os.makedirs(os.path.dirname(dest_fpath), exist_ok=True)
         shutil.copy(src_fpath, dest_fpath)
+
+        self._display_dir_tree()
 
 
     def _add_to_Exdir(self,name,target_dir,level_dir):
@@ -2564,7 +2654,7 @@ class geo_metadata(object):
 
 
     def _add_to_Zip(self,filename, target_dir, level_dir):
-        
+
         try:
             z = zipfile.ZipFile("project.zip", 'r')
         except:
@@ -2607,7 +2697,7 @@ class geo_metadata(object):
             for i in test_str:
                 if i == '/':
                     count = count + 1
-            return count 
+            return count
 
         string = "<ul>\n"
         for s in elements:
@@ -2620,7 +2710,7 @@ class geo_metadata(object):
                 string += "\n".join(["<li>" + '......' + str(s) + "</li>"])
         #string += "\n".join(["<li>" + str(s) + "</li>" for s in elements])
         string += "\n</ul>"
-        
+
         return string
 
     def _display_dir_tree_old(self):
@@ -2628,19 +2718,17 @@ class geo_metadata(object):
         from directory_tree import display_tree
         out = widgets.Output()
         import os
-        directory_path =  os.getcwd()
+        self.projectdir_path =  os.getcwd()
 
         if not os.path.exists('projectdir'):
-            os.makedirs(directory_path + 'projectdir')
+            os.makedirs(self.projectdir_path + 'projectdir')
         with out:
-
-            display_tree(directory_path + '/projectdir/')
+            display_tree(self.projectdir_path + '/projectdir/')
 
         return out
 
 
     def _display_dir_tree(self):
-
 
         from fnmatch import fnmatch
         from pathlib import PurePath
@@ -2669,12 +2757,12 @@ class geo_metadata(object):
             files.sort()
             return files
 
-        directory_path =  os.getcwd()
+        self.projectdir_path =  os.getcwd()
 
-        if not os.path.exists(directory_path + '\projectdir'):
-            os.makedirs(directory_path + 'projectdir')
+        if not os.path.exists(self.projectdir_path + '\projectdir'):
+            os.makedirs(self.projectdir_path + '\projectdir')
 
-        files = collect_files(directory_path + '\projectdir')
+        files = collect_files(self.projectdir_path + '\projectdir')
         #print(directory_path + '\projectdir')
         #print(files)
 
@@ -2693,7 +2781,7 @@ class geo_metadata(object):
 
         class TreeNode(Node):
             fullpath = Unicode("").tag(sync=True)
-    
+
 
         def create_tree_widget(root, path, depth=0):
             node = Tree() if depth == 0 else TreeNode()
@@ -2782,7 +2870,7 @@ class geo_metadata(object):
     def _widget_log(self):
         """Report errors
         """
-  
+
         header= widgets.HTML(
                     '<h2>Logger<h2/>')
         text = widgets.HTML('''
@@ -2816,8 +2904,8 @@ class geo_metadata(object):
         """Report errors
         """
         now = datetime.now()
-        dt_string = now.strftime("%d/%m/%Y %H:%M:%S") 
-        self.warnings.append(dt_string + ': ' + warning) 
+        dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+        self.warnings.append(dt_string + ': ' + warning)
 
         self.string = self.ulify(self.warnings)
         self.log.value  = self.string
@@ -2838,11 +2926,11 @@ class geo_metadata(object):
 
         self.vbox_ERT = widgets.VBox(self.widget_ERT)
         self.vbox_upload_ERT_data = widgets.VBox(self.widget_ERT_upload)
-        self.vbox_upload_ERT_files = widgets.VBox(self.widget_ERT_files)     
+        self.vbox_upload_ERT_files = widgets.VBox(self.widget_ERT_files)
 
         self.vbox_EM = widgets.VBox(self.widget_EM)
         self.vbox_upload_EM_data = widgets.VBox(self.widget_EM_upload)
-        self.vbox_upload_EM_files = widgets.VBox(self.widget_EM_files)     
+        self.vbox_upload_EM_files = widgets.VBox(self.widget_EM_files)
 
 
         self.vbox_quality = widgets.VBox(self.widget_quality)
@@ -2897,20 +2985,20 @@ class geo_metadata(object):
 
 
         vbox_home = widgets.VBox([self.vbox_guidelines,accordion_tab0,self.vbox_guidelines_footer])
-        #self.vbox_tab_ERT = widgets.VBox([self.vbox_ERT,self.accordion_tab_ERT])        
-        self.vbox_tab_ERT = widgets.VBox([self.accordion_tab_ERT])        
+        #self.vbox_tab_ERT = widgets.VBox([self.vbox_ERT,self.accordion_tab_ERT])
+        self.vbox_tab_ERT = widgets.VBox([self.accordion_tab_ERT])
         vbox_tab_EM = widgets.VBox([self.vbox_EM,accordion_tab_EM])
         vbox_tab_export = widgets.VBox([self.vbox_export,accordion_tab_export])
-                          
+
 
         self._update_widget_export()
         #self._update_tab()
 
 
-        self.tab  = widgets.Tab(children = [vbox_home, 
+        self.tab  = widgets.Tab(children = [vbox_home,
                                        self.vbox_import,
                                        self.vbox_tab_ERT,
-                                       vbox_tab_EM,                                       
+                                       #vbox_tab_EM,
                                        self.vbox_quality,
                                        #self.vbox_sampling,
                                        #self.vbox_data_structure,
@@ -2919,16 +3007,19 @@ class geo_metadata(object):
                                        self.vbox_about
                                       ])
 
+        tabnames = ['Home','Import','ERT','Quality','Export','Logger','About']
+        for it,name in enumerate(tabnames):
+            self.tab.set_title(it,name)
 
-        self.tab.set_title(0, 'Home')
-        self.tab.set_title(1, 'Import')
-        self.tab.set_title(2, 'ERT')
-        self.tab.set_title(3, 'EM')
-        self.tab.set_title(4, 'Quality')
+        #self.tab.set_title(0, 'Home')
+        #self.tab.set_title(1, 'Import')
+        #self.tab.set_title(2, 'ERT')
+        #self.tab.set_title(3, 'EM')
+        #self.tab.set_title(4, 'Quality')
         #tab.set_title(4, 'Sampling')
-        self.tab.set_title(5, 'Export')
+        #self.tab.set_title(5, 'Export')
         #tab.set_title(5, 'Data structure')
-        self.tab.set_title(6, 'Logger')
-        self.tab.set_title(7, 'About')
+        #self.tab.set_title(6, 'Logger')
+        #self.tab.set_title(7, 'About')
 
         display(self.tab)
