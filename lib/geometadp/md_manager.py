@@ -202,7 +202,7 @@ class geo_metadata(object):
         self.widget_EM.append(self._widget_coil_height())
         self.widget_EM.append(self._widget_coil_spacing())
         self.widget_EM.append(self._widget_description_EM())
-        self.widget_EM.append(self._timelapse_option())
+        #self.widget_EM.append(self._timelapse_option())
 
         self.widget_EM_upload.append(self._widget_upload_EM_button())  # upload EM data from emagpy
         self.widget_EM_files.append(self._widgets_EM_add_file())
@@ -685,8 +685,9 @@ class geo_metadata(object):
         def _observe_method(change):
             self.metadata['method'] = self.widget_method.value
             self._update_widget_export()
+            #self._update_tabs()
 
-        self.widget_method.observe(_observe_method)
+        self.widget_method.observe(_observe_method,'value')
         return self.widget_method
 
 #%% TIME LAPSE MANAGEMENT
@@ -713,6 +714,7 @@ class geo_metadata(object):
             self.widget_TL_choice = widgets.RadioButtons(
             options=['No', 'Yes'],
             default='No',
+            #value=None,
             description='Add time lapse metadata',
             disabled=False,
             style=style,
@@ -871,7 +873,8 @@ class geo_metadata(object):
         #print(child_to_create._view_name)
 
         if child_to_create._view_name == 'TextView':
-            new_widgets_TL = widgets.Text(description=child_to_create.description + str(step[1]),style=style,layout=layout)
+            new_widgets_TL = widgets.Text(value=child_to_create.value,
+                                        description=child_to_create.description + str(step[1]),style=style,layout=layout)
 
         if child_to_create._view_name == 'RadioButtonsView':
             new_widgets_TL = widgets.RadioButtons(options=child_to_create.options,
@@ -1091,17 +1094,18 @@ class geo_metadata(object):
             self.accordionTL[step[1]].set_title(index=2, title='Related data ressources')
 
         #self.TL_head_control = self._add_TL_header_control() # To implement, header control for very large time lapse dataset (including a slider to select quickly)
-        intro_tl_resume = widgets.HTML('''
-                not yet implemented; resume tab with map + interactive table showing imported data
-             ''')
+        #intro_tl_resume = widgets.HTML('''
+        #        not yet implemented; resume tab with map + interactive table showing imported data
+        #     ''')
 
         #self.TL_head_control = self._add_TL_header_control() # To implement, header control for very large time lapse dataset (including a slider to select quickly)
 
-        #self.resume_tab = widgets.Tab() # create TL tabs
+
         #self.vboxTL_resume = widgets.VBox([intro_tl_resume])
         #self.resume_tab.children = self.vboxTL_resume
         #[self.resume_tab.set_title(num,name) for num, name in enumerate(['resume'])]
-
+        #self.TL_tab  = widgets.Tab(children = [self.accordionTL,
+        #                               self.resume_tab])
 
 
         #self.TL_tab.children = [self.accordionTL,self.resume_tab]
@@ -1110,6 +1114,13 @@ class geo_metadata(object):
         self._create_TL_tabs()
 
         #self.vbox_tab_ERT.children = [self.TL_tab,self.resume_tab]
+
+
+        for step in enumerate(np.arange(len(self.accordionTL),self.metadata['nb_of_files_TL'])):
+            print(step)
+            print('step')
+            self._observe_TL_tab_widgets(step)
+            self._update_widget_export()
 
 
         def _observe_TL(change):
@@ -1397,6 +1408,7 @@ class geo_metadata(object):
             self._update_widget_log('electrode positions detected from file upload')
 
         self._update_widget_export()
+
         #self._parse_json() # parse to metadata for export
         #self._update_fields_values(['print_log_REDA']) # parse to widgets to replace initial value
         self._update_fields_values(['nb_abmn'+ str(step_tab)]) # parse to widgets to replace initial value
@@ -2078,7 +2090,7 @@ class geo_metadata(object):
             # self._update_fields_values() # parse to widgets to replace initial valus
 
     def _widget_upload_codes_button(self,method_str):
-       """Import EM dataset """
+       """Import codes files """
 
        self.codes_upload = FileChooser(use_dir_icons=True)
 
@@ -2243,6 +2255,7 @@ class geo_metadata(object):
 
         # if ERT tab
         #self.vbox_tab_ERT.children = [self.TL_head_control,self.TL_tab]
+        #self.resume_tab = widgets.Tab() # create TL tabs
         self.vbox_tab_ERT.children = [self.TL_tab]
 
         # if EM tab
@@ -2285,6 +2298,8 @@ class geo_metadata(object):
 
     def export_metadata_to_json_str(self):
         """Generate a string representation of the metadata"""
+        print('dkjdijdi')
+        print(self.metadata)
         metadata_json_raw = json.dumps(self.metadata, indent=4)
         return metadata_json_raw
 
@@ -2393,8 +2408,6 @@ class geo_metadata(object):
 
        #vbox = widgets.VBox([self.json_upload])
 
-
-
        self.json_upload = FileChooser(use_dir_icons=True)
        self.json_upload.title = '<b>Import template/backup JSON</b>'
 
@@ -2441,26 +2454,27 @@ class geo_metadata(object):
         """Update all fields after uploading JSON file"""
         json_tmp = json.dumps(self.data_uploaded, indent=0)
         print(json_tmp)
+        #print('self.metadata')
+        #print(self.metadata)
         mylist = json.loads(json_tmp)
         for i in enumerate(mylist):
             print(i)
             if hasattr(self, 'widget_' + i[1]): # existing widget
                widget2fill = eval('self.widget_' + i[1])
                if "date" in i[1]:
-                    date_time_obj = datetime.strptime(self.metadata[i[1]],  "%Y-%m-%d")
+                    date_time_obj = datetime.strptime(self.data_uploaded[i[1]],  "%Y-%m-%d")
                     widget2fill.value = date_time_obj
                elif "file" in i[1]:
-                    path , file = os.path.split(self.metadata[i[1]])
+                    path , file = os.path.split(self.data_uploaded[i[1]])
                     widget2fill.reset(path=path, filename=file)
                else:
                     try:
-                        widget2fill.value = self.metadata[i[1]]
+                        widget2fill.value = self.data_uploaded[i[1]]
                     except:
                         pass
 
                     try: # for multiple selection (such as coil orientation)
                         metadata_tuple = tuple(map(int, i[1].split('; ')))
-                        #print(metadata_tuple)
                         widget2fill.value = metadata_tuple
                     except:
                         pass
@@ -2473,14 +2487,15 @@ class geo_metadata(object):
                      #print(i[0])
                      #print(i[1])
                      #print('***')
-                    self._prepare_widgets()
+                    #self._update_widget_export() # ???
+                    #self._prepare_widgets()
                     self._add_children_TL()
                     self._observe_TL_tab_widgets() # before
                     self._update_fields_values_TL()
                     self._observe_TL_tab_widgets() # after
                     #self.widget_EM.append(self._timelapse_option())
-                    self._update_widget_export() # ???
                     #self._update_widget_export() # ???
+                    self._update_widget_export() # ???
                     #self._timelapse_option(reloadJSON=True)
                 #print('eval')
                 #print('self._' + i[1] + '()')
@@ -2990,14 +3005,19 @@ class geo_metadata(object):
         vbox_tab_EM = widgets.VBox([self.vbox_EM,accordion_tab_EM])
         vbox_tab_export = widgets.VBox([self.vbox_export,accordion_tab_export])
 
+        title_resume = widgets.HTML('''
+                <h3> Resume </h3>
+             ''')
+        #self.vbox_tab_plot = widgets.VBox([title_resume])
+        #self.vbox_tab_plot = widgets.VBox(self.resume_tab)
 
         self._update_widget_export()
         #self._update_tab()
 
-
         self.tab  = widgets.Tab(children = [vbox_home,
                                        self.vbox_import,
-                                       self.vbox_tab_ERT,
+                                       #self.vbox_tab_ERT,
+                                       #self.vbox_tab_plot,
                                        #vbox_tab_EM,
                                        self.vbox_quality,
                                        #self.vbox_sampling,
@@ -3007,7 +3027,8 @@ class geo_metadata(object):
                                        self.vbox_about
                                       ])
 
-        tabnames = ['Home','Import','ERT','Quality','Export','Logger','About']
+        #tabnames = ['Home','Import','ERT','Quality','Export','Logger','About']
+        tabnames = ['Home','Import','Quality','Export','Logger','About']
         for it,name in enumerate(tabnames):
             self.tab.set_title(it,name)
 
@@ -3022,4 +3043,14 @@ class geo_metadata(object):
         #self.tab.set_title(6, 'Logger')
         #self.tab.set_title(7, 'About')
 
+        display(self.tab)
+
+    def _update_tabs(self):
+        ls = list(self.tab.children)
+        ls.insert(self.vbox_tab_ERT,2)
+        new_tabs = tuple(ls)
+        self.tab  = widgets.Tab(new_tabs)
+        tabnames = ['Home','Import','ERT','Quality','Export','Logger','About']
+        for it,name in enumerate(tabnames):
+            self.tab.set_title(it,name)
         display(self.tab)
