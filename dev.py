@@ -21,8 +21,8 @@ restartkernel()
 import IPython
 
 import os 
-os.chdir('../test_ERT_TL/')
-print(os.getcwd())
+#os.chdir('../test_ERT_TL/')
+p#rint(os.getcwd())
 
 # %% [markdown]
 # ## Full GUI
@@ -31,6 +31,22 @@ print(os.getcwd())
 from lib.geometadp import md_manager
 obj = md_manager.geo_metadata()
 obj.manage()
+
+# %%
+import ipywidgets as widgets
+up = widgets.FileUpload()
+
+def onclick(change):
+    #print(change.new)
+    #print(change.new)
+    uploaded_file = up.value[0]
+    uploaded_file["size"]
+    uploaded_file.size
+
+up.observe(onclick,'value')
+
+up
+
 
 
 # %%
