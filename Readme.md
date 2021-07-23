@@ -25,9 +25,10 @@ For a nicer visualisation run the code in Voilà. Execute the following code in 
     
 **NOTE**
 
-    The GUI can be run online through Binder but in that case you need to create a github repo to interact with your files:
-    1. Launch the binder
-    2. Select the notebook 'run_GUI' and run it
+The GUI can be run online through Binder but in that case you need to create a github repo to interact with your files:
+
+1. Launch the binder
+2. Select the notebook 'run_GUI' and run it
 
 #### Dependencies
 
