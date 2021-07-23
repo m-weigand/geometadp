@@ -7,7 +7,9 @@
 
 The supported way to install geometadp use the Anaconda python distribution. If you do not already have it, first install a 3.x version for your platform from [here](https://docs.conda.io/en/latest/miniconda.html). Familiarise yourself with Conda before going further.
 
-Once you have Anaconda installed, install the metadata manager using 'pip install git+https://github.com/m-weigand/geometadp'. 
+Once you have Anaconda installed, install the metadata manager using:
+
+	pip install git+https://github.com/m-weigand/geometadp. 
 
 Finally, open a new Jupyter Notebook (Python 3 >= 3.7) and execute the following code within on cell:
 
@@ -17,8 +19,9 @@ Finally, open a new Jupyter Notebook (Python 3 >= 3.7) and execute the following
 
 **NOTE**
 
-	For a nicer visualisation run the code in Voilà. Execute the following code in the console:
-    voila <path-to-notebook> run_GUI.ipynb
+For a nicer visualisation run the code in Voilà. Execute the following code in the console:
+
+	voila path-to-notebook/run_GUI.ipynb
     
 **NOTE**
 
