@@ -1,0 +1,14 @@
+{
+    "method": "",
+    "time_lapse": "True",
+    "report_title": "",
+    "report_authors": "",
+    "owner": "",
+    "email": "",
+    "measurement_type": "Field",
+    "nb_of_files_TL": 5,
+    "Instrument ERT1": "Syscal3",
+    "Instrument ERT2": "Syscal",
+    "Instrument ERT3": "Syscal",
+    "Instrument ERT4": "step4 instrument"
+}

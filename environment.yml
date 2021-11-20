@@ -1,0 +1,9 @@
+channels:
+- conda-forge
+- defaults
+dependencies:
+- pip
+- ipywidgets
+- pip:
+  - -r file:requirements.txt
+ 
