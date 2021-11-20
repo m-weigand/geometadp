@@ -1,3 +1,6 @@
+DEPRECATED
+----
+
 [<img src="https://img.shields.io/badge/Slack-agrogeophy-1.svg?logo=slack">](https://agrogeophy.slack.com)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/agrogeophy/geometadp.git/HEAD)
 
